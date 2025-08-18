@@ -398,37 +398,41 @@ export default function TeluguSpelling() {
           <CardTitle className="text-purple-700">Select Difficulty Level</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3 justify-center">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 justify-center">
             <Button
               variant={selectedDifficulty === 'all' ? 'default' : 'outline'}
               onClick={() => handleDifficultyChange('all')}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm"
             >
-              All Levels
+              <span className="hidden sm:inline">All Levels</span>
+              <span className="sm:hidden">All</span>
             </Button>
             <Button
               variant={selectedDifficulty === 'easy' ? 'default' : 'outline'}
               onClick={() => handleDifficultyChange('easy')}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm"
             >
-              సులభం (Easy)
+              <span className="hidden sm:inline">సులభం (Easy)</span>
+              <span className="sm:hidden">సులభం</span>
             </Button>
             <Button
               variant={selectedDifficulty === 'medium' ? 'default' : 'outline'}
               onClick={() => handleDifficultyChange('medium')}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs sm:text-sm"
             >
-              మధ్యస్థం (Medium)
+              <span className="hidden sm:inline">మధ్యస్థం (Medium)</span>
+              <span className="sm:hidden">మధ్యస్థం</span>
             </Button>
             <Button
               variant={selectedDifficulty === 'hard' ? 'default' : 'outline'}
               onClick={() => handleDifficultyChange('hard')}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm"
             >
-              కష్టం (Hard)
+              <span className="hidden sm:inline">కష్టం (Hard)</span>
+              <span className="sm:hidden">కష్టం</span>
             </Button>
           </div>
-          <div className="mt-3 text-center text-sm text-gray-600">
+          <div className="mt-3 text-center text-xs sm:text-sm text-gray-600">
             {filteredExercises.length} exercises available in {selectedDifficulty === 'all' ? 'all levels' : selectedDifficulty} level
           </div>
         </CardContent>
@@ -459,19 +463,19 @@ export default function TeluguSpelling() {
       </Card>
 
       {/* Current Exercise */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Word Display */}
         <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-700">
+            <CardTitle className="flex items-center gap-2 text-blue-700 text-base sm:text-lg">
               <span>Listen and Spell</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4">
                          <div className="text-center space-y-2">
-               <p className="text-sm text-gray-600">English word:</p>
-               <p className="text-2xl font-bold text-blue-800">{currentExercise.englishWord}</p>
-               <p className="text-sm text-gray-500">Listen to the Telugu pronunciation</p>
+               <p className="text-xs sm:text-sm text-gray-600">English word:</p>
+               <p className="text-xl sm:text-2xl font-bold text-blue-800">{currentExercise.englishWord}</p>
+               <p className="text-xs sm:text-sm text-gray-500">Listen to the Telugu pronunciation</p>
              </div>
             
             {/* Audio Button */}
@@ -609,12 +613,12 @@ export default function TeluguSpelling() {
                 </div>
               </div>
               
-                             <div className="flex flex-wrap gap-2">
+                             <div className="grid grid-cols-4 sm:flex sm:flex-wrap gap-2">
                  {availableLetters.map((letter, index) => (
                    <Button
                      key={`${letter}-${index}`}
                      variant="outline"
-                     size="lg"
+                     size="sm"
                      onClick={() => {
                        // Find the letter in the original letters array
                        const letterIndex = currentExercise.letters.indexOf(letter);
@@ -622,7 +626,7 @@ export default function TeluguSpelling() {
                          selectLetter(letterIndex);
                        }
                      }}
-                     className="text-lg"
+                     className="text-base sm:text-lg p-2 sm:p-4"
                      disabled={isCorrect !== null}
                    >
                      {letter}

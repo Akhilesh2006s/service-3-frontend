@@ -969,94 +969,104 @@ const LearnerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-primary p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Enhanced Header */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8 border border-primary/20">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full translate-y-12 -translate-x-12"></div>
+    <div className="min-h-screen bg-gradient-primary p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+        {/* Enhanced Header - Mobile Responsive */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 sm:p-8 border border-primary/20">
+          <div className="absolute top-0 right-0 w-16 h-16 sm:w-32 sm:h-32 bg-primary/5 rounded-full -translate-y-8 translate-x-8 sm:-translate-y-16 sm:translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-24 sm:h-24 bg-primary/5 rounded-full translate-y-6 -translate-x-6 sm:translate-y-12 sm:-translate-x-12"></div>
           
-          <div className="relative flex items-center justify-between">
+          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-primary/20 rounded-xl">
-                  <Sparkles className="w-6 h-6 text-primary" />
+                <div className="p-2 sm:p-3 bg-primary/20 rounded-xl">
+                  <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold text-white">
+                  <h1 className="text-2xl sm:text-4xl font-bold text-white">
                     Welcome {user?.name || 'username'}!
                   </h1>
-                  <p className="text-lg text-white/80">Continue your Telugu learning journey with passion</p>
+                  <p className="text-sm sm:text-lg text-white/80">Continue your Telugu learning journey with passion</p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Welcome, {user?.name || 'Learner'}!</span>
-                <Badge variant="secondary">{user?.role || 'Unknown Role'}</Badge>
+                <span className="text-xs sm:text-sm text-muted-foreground">Welcome, {user?.name || 'Learner'}!</span>
+                <Badge variant="secondary" className="text-xs">{user?.role || 'Unknown Role'}</Badge>
               </div>
               
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  fetchSubmissions();
-                  fetchExams();
-                  toast({
-                    title: "Data Refreshed",
-                    description: "Your evaluation results have been updated.",
-                  });
-                }}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
-              </Button>
-              
-              <Button variant="outline" onClick={handleLogout}>
-                Logout
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    fetchSubmissions();
+                    fetchExams();
+                    toast({
+                      title: "Data Refreshed",
+                      description: "Your evaluation results have been updated.",
+                    });
+                  }}
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                >
+                  <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Refresh</span>
+                </Button>
+                
+                <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs sm:text-sm">
+                  Logout
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
 
 
-        {/* Professional Navigation Tabs */}
+        {/* Professional Navigation Tabs - Mobile Responsive */}
         <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 shadow-lg">
-          <CardContent className="p-8">
-            <div className="mb-6 text-center">
-              <h2 className="text-2xl font-bold text-primary mb-2">Learning Dashboard</h2>
-              <p className="text-muted-foreground">Choose your learning path and explore Telugu language skills</p>
+          <CardContent className="p-4 sm:p-8">
+            <div className="mb-4 sm:mb-6 text-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-primary mb-2">Learning Dashboard</h2>
+              <p className="text-sm sm:text-base text-muted-foreground">Choose your learning path and explore Telugu language skills</p>
             </div>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-              <TabsList className="flex flex-wrap justify-center w-full bg-gradient-to-r from-primary/5 to-primary/15 border border-primary/20 rounded-lg shadow-sm p-2 gap-1">
-                <TabsTrigger key="exams" value="exams" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-4 py-3 text-sm font-medium rounded-md mx-1">
-                  <FileText className="w-4 h-4" />
-                  Exams & Assessments
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-8">
+              <TabsList className="flex flex-wrap justify-center w-full bg-gradient-to-r from-primary/5 to-primary/15 border border-primary/20 rounded-lg shadow-sm p-1 sm:p-2 gap-1">
+                <TabsTrigger key="exams" value="exams" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                  <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Exams & Assessments</span>
+                  <span className="sm:hidden">Exams</span>
                 </TabsTrigger>
-                <TabsTrigger key="curriculum" value="curriculum" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-4 py-3 text-sm font-medium rounded-md mx-1">
-                  <BookOpen className="w-4 h-4" />
-                  Curriculum
+                <TabsTrigger key="curriculum" value="curriculum" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                  <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Curriculum</span>
+                  <span className="sm:hidden">Learn</span>
                 </TabsTrigger>
-                <TabsTrigger key="telugu-reading" value="telugu-reading" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-4 py-3 text-sm font-medium rounded-md mx-1">
-                  <BookOpen className="w-4 h-4" />
-                  తెలుగు చదవడం
+                <TabsTrigger key="telugu-reading" value="telugu-reading" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                  <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">తెలుగు చదవడం</span>
+                  <span className="sm:hidden">చదవడం</span>
                 </TabsTrigger>
-                <TabsTrigger key="telugu-dictation" value="telugu-dictation" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-4 py-3 text-sm font-medium rounded-md mx-1">
-                  <Type className="w-4 h-4" />
-                  తెలుగు డిక్టేషన్
+                <TabsTrigger key="telugu-dictation" value="telugu-dictation" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                  <Type className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">తెలుగు డిక్టేషన్</span>
+                  <span className="sm:hidden">డిక్టేషన్</span>
                 </TabsTrigger>
-                <TabsTrigger key="telugu-sentence-formation" value="telugu-sentence-formation" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-4 py-3 text-sm font-medium rounded-md mx-1">
-                  <Type className="w-4 h-4" />
-                  వాక్య నిర్మాణం
+                <TabsTrigger key="telugu-sentence-formation" value="telugu-sentence-formation" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                  <Type className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">వాక్య నిర్మాణం</span>
+                  <span className="sm:hidden">వాక్యం</span>
                 </TabsTrigger>
-                <TabsTrigger key="telugu-spelling" value="telugu-spelling" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-4 py-3 text-sm font-medium rounded-md mx-1">
-                  <Type className="w-4 h-4" />
-                  వర్ణమాల
+                <TabsTrigger key="telugu-spelling" value="telugu-spelling" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                  <Type className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">వర్ణమాల</span>
+                  <span className="sm:hidden">వర్ణమాల</span>
                 </TabsTrigger>
-                <TabsTrigger key="voice-examinations" value="voice-examinations" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-4 py-3 text-sm font-medium rounded-md mx-1">
-                  <Volume2 className="w-4 h-4" />
-                  Voice Examinations
+                <TabsTrigger key="voice-examinations" value="voice-examinations" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                  <Volume2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Voice Examinations</span>
+                  <span className="sm:hidden">Voice</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -1081,53 +1091,53 @@ const LearnerDashboard = () => {
                           🔄 Refresh Status
                         </Button>
                       </div>
-                      <div className="grid grid-cols-4 gap-4 text-center">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
                         <div>
-                          <div className="text-2xl font-bold text-primary">
+                          <div className="text-xl sm:text-2xl font-bold text-primary">
                             {exams.filter(exam => 
                               selectedMilestone === "all" || exam.milestone?.toString() === selectedMilestone
                             ).length}
                           </div>
-                          <div className="text-sm text-muted-foreground">Total Exams</div>
+                          <div className="text-xs sm:text-sm text-muted-foreground">Total Exams</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-bold text-green-600">
+                          <div className="text-xl sm:text-2xl font-bold text-green-600">
                             {exams.filter(exam => 
                               (selectedMilestone === "all" || exam.milestone?.toString() === selectedMilestone) && exam.isCompleted
                             ).length}
                           </div>
-                          <div className="text-sm text-muted-foreground">Completed</div>
+                          <div className="text-xs sm:text-sm text-muted-foreground">Completed</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-bold text-blue-600">
+                          <div className="text-xl sm:text-2xl font-bold text-blue-600">
                             {exams.filter(exam => 
                               (selectedMilestone === "all" || exam.milestone?.toString() === selectedMilestone) && !exam.isCompleted
                             ).length}
                           </div>
-                          <div className="text-sm text-muted-foreground">Available</div>
+                          <div className="text-xs sm:text-sm text-muted-foreground">Available</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-bold text-orange-600">
+                          <div className="text-xl sm:text-2xl font-bold text-orange-600">
                             {exams.filter(exam => 
                               (selectedMilestone === "all" || exam.milestone?.toString() === selectedMilestone) && 
                               exam.createdAt && (new Date().getTime() - new Date(exam.createdAt).getTime()) < (7 * 24 * 60 * 60 * 1000)
                             ).length}
                           </div>
-                          <div className="text-sm text-muted-foreground">New This Week</div>
+                          <div className="text-xs sm:text-sm text-muted-foreground">New This Week</div>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 )}
                 
-                {/* Milestone Filter */}
+                {/* Milestone Filter - Mobile Responsive */}
                 <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
                   <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium text-primary">Filter by Milestone:</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                        <span className="font-medium text-primary text-sm sm:text-base">Filter by Milestone:</span>
                         <Select value={selectedMilestone} onValueChange={setSelectedMilestone}>
-                          <SelectTrigger className="w-48">
+                          <SelectTrigger className="w-full sm:w-48">
                             <SelectValue placeholder="Select milestone" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1140,7 +1150,7 @@ const LearnerDashboard = () => {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-xs sm:text-sm text-muted-foreground">
                         {exams.filter(exam => 
                           selectedMilestone === "all" || exam.milestone?.toString() === selectedMilestone
                         ).length} exams
@@ -1172,18 +1182,18 @@ const LearnerDashboard = () => {
                         <Card key={exam.id || generateUniqueKey('exam', undefined, index)} className={`hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15 ${
                           exam.isCompleted ? 'ring-2 ring-green-200' : ''
                         }`}>
-                          <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
+                          <CardContent className="p-4 sm:p-6">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-0">
                               {exam.isCompleted && (
-                                <div className="absolute top-4 right-4">
-                                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                    <CheckCircle className="w-5 h-5 text-white" />
+                                <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
+                                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                                   </div>
                                 </div>
                               )}
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                  <h3 className="font-semibold text-lg">{exam.title}</h3>
+                              <div className="space-y-2 sm:space-y-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                                  <h3 className="font-semibold text-base sm:text-lg">{exam.title}</h3>
                                   <div className="flex items-center gap-2">
                                     {exam.isCompleted ? (
                                       <>
@@ -1218,46 +1228,46 @@ const LearnerDashboard = () => {
                                   </div>
                                 </div>
                                 <p className="text-sm text-muted-foreground">{exam.description}</p>
-                                <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
                                   <span className="flex items-center gap-1">
-                                    <Clock className="w-4 h-4" />
+                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                                     {exam.timeLimit} minutes
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <FileText className="w-4 h-4" />
+                                    <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
                                     {exam.type.toUpperCase()}
                                   </span>
                                   {exam.milestone && (
                                     <span className="flex items-center gap-1">
-                                      <Target className="w-4 h-4" />
+                                      <Target className="w-3 h-3 sm:w-4 sm:h-4" />
                                       Milestone {exam.milestone}
                                     </span>
                                   )}
                                   {exam.difficulty && (
                                     <span className="flex items-center gap-1">
-                                      <TrendingUp className="w-4 h-4" />
+                                      <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
                                       {exam.difficulty.charAt(0).toUpperCase() + exam.difficulty.slice(1)}
                                     </span>
                                   )}
                                   {exam.passingScore && (
                                     <span className="flex items-center gap-1">
-                                      <CheckCircle className="w-4 h-4" />
+                                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                                       Pass: {exam.passingScore}%
                                     </span>
                                   )}
                                   {exam.score && (
                                     <span className="flex items-center gap-1">
-                                      <Star className="w-4 h-4" />
+                                      <Star className="w-3 h-3 sm:w-4 sm:h-4" />
                                       Score: {exam.score}%
                                     </span>
                                   )}
                                   <span className="flex items-center gap-1">
-                                    <Calendar className="w-4 h-4" />
+                                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                                     Posted: {exam.createdAt ? new Date(exam.createdAt).toLocaleDateString() : 'Recently'}
                                   </span>
                                   {exam.createdBy && (
                                     <span className="flex items-center gap-1">
-                                      <GraduationCap className="w-4 h-4" />
+                                      <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4" />
                                       By: {exam.createdBy.name}
                                     </span>
                                   )}
@@ -1265,33 +1275,33 @@ const LearnerDashboard = () => {
                               </div>
                               
                               {exam.isCompleted ? (
-                                <div className="text-center">
-                                  <div className="text-2xl font-bold text-primary mb-1">
+                                <div className="text-center space-y-2 sm:space-y-3">
+                                  <div className="text-xl sm:text-2xl font-bold text-primary">
                                     {exam.type === 'descriptive' ? 
                                       (exam.score ? `${exam.score}/${exam.totalMaxMarks || 100}` : '📝') : 
                                       `${exam.score}%`
                                     }
                                   </div>
-                                  <div className="text-xs text-muted-foreground mb-2">
+                                  <div className="text-xs text-muted-foreground">
                                     {exam.type === 'descriptive' ? 
                                       (exam.score ? 'Marks Awarded' : 'Submitted for Evaluation') : 
                                       'Final Score'
                                     }
                                   </div>
-                                  <div className="text-xs text-muted-foreground mb-2">
+                                  <div className="text-xs text-muted-foreground">
                                     {exam.type === 'descriptive' ? 
                                       (exam.score ? '✅ EVALUATED' : '📝 PENDING EVALUATION') : 
                                       (exam.score >= (exam.passingScore || 70) ? '✅ PASSED' : '❌ FAILED')
                                     }
                                   </div>
-                                  <div className="text-xs text-red-500 mb-2">
+                                  <div className="text-xs text-red-500">
                                     Cannot Retake
                                   </div>
                                   <Button 
                                     onClick={() => handleExamStart(exam)}
                                     size="sm"
                                     variant="outline"
-                                    className="border-primary/30 hover:bg-primary/10"
+                                    className="border-primary/30 hover:bg-primary/10 w-full sm:w-auto"
                                   >
                                     {exam.type === 'descriptive' ? 'View Submission' : 'View Results'}
                                   </Button>
@@ -1300,7 +1310,7 @@ const LearnerDashboard = () => {
                                 <Button 
                                   onClick={() => handleExamStart(exam)}
                                   size="sm"
-                                  className="bg-primary hover:bg-primary/90 text-white"
+                                  className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
                                 >
                                   Attempt Test
                                 </Button>
