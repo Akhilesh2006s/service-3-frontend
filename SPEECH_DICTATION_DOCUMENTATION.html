@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telugu Learning Application - Speech Dictation Documentation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+            margin-top: 30px;
+            font-size: 1.8em;
+        }
+        
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+            font-size: 1.4em;
+        }
+        
+        h4 {
+            color: #34495e;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+        
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border-left: 4px solid #3498db;
+            margin: 15px 0;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+        
+        blockquote {
+            border-left: 4px solid #3498db;
+            margin: 15px 0;
+            padding-left: 15px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        .toc {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            margin: 5px 0;
+        }
+        
+        .toc a {
+            color: #2c3e50;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            color: #3498db;
+        }
+        
+        .file-structure {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .flow-diagram {
+            background-color: #e8f4fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        @media print {
+            body {
+                font-size: 12pt;
+                line-height: 1.4;
+            }
+            
+            h1 { font-size: 24pt; }
+            h2 { font-size: 18pt; }
+            h3 { font-size: 14pt; }
+            h4 { font-size: 12pt; }
+            
+            pre {
+                font-size: 10pt;
+                page-break-inside: avoid;
+            }
+            
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <p><h1>Telugu Learning Application - Speech Dictation & Audio Features Documentation</h1><br><br><h2>Table of Contents</h2><br><ul><li><a href="#overview">Overview</a></li><br><li><a href="#architecture">Architecture</a></li><br><li><a href="#speech-synthesis">Speech Synthesis (Text-to-Speech)</a></li><br><li><a href="#speech-recognition">Speech Recognition (Speech-to-Text)</a></li><br><li><a href="#telugu-dictation">Telugu Dictation Component</a></li><br><li><a href="#telugu-reading">Telugu Reading Component</a></li><br><li><a href="#progress-tracking">Progress Tracking System</a></li><br><li><a href="#file-structure">File Structure</a></li><br><li><a href="#technical-implementation">Technical Implementation</a></li><br><li><a href="#troubleshooting">Troubleshooting</a></li><br><br>---<br><br><h2>Overview</h2><br><br>The Telugu Learning Application is a comprehensive web-based platform that teaches Telugu language through interactive speech-based exercises. The application leverages modern web APIs for speech synthesis and recognition to provide real-time pronunciation feedback and dictation practice.<br><br><h3>Key Features</h3><br><li><strong>Speech Synthesis</strong>: Converts Telugu text to speech for pronunciation guidance</li><br><li><strong>Speech Recognition</strong>: Captures user speech for pronunciation evaluation</li><br><li><strong>Real-time Feedback</strong>: Provides immediate visual feedback (green/red) for correct/incorrect pronunciation</li><br><li><strong>Progress Tracking</strong>: Saves user progress across different learning modules</li><br><li><strong>Multiple Learning Modes</strong>: Dictation, Reading, Sentence Formation, and Spelling exercises</li><br><br>---<br><br><h2>Architecture</h2><br><br><h3>Frontend Architecture</h3><br>``<code><br>src/<br>├── components/<br>│   ├── TeluguDictation.tsx      # Word-by-word dictation practice<br>│   ├── TeluguReading.tsx        # Story reading with pronunciation<br>│   ├── TeluguSpelling.tsx       # Audio-based spelling practice<br>│   ├── TeluguSentenceFormation.tsx # Sentence construction exercises<br>│   └── TeluguFillBlanks.tsx     # Fill-in-the-blanks exercises<br>├── utils/<br>│   └── speechUtils.ts           # Centralized speech utilities<br>├── contexts/<br>│   └── AuthContext.tsx          # User authentication<br>└── pages/<br>    └── LearnerDashboard.tsx     # Main learning interface<br></code>`<code><br><br><h3>Backend Architecture</h3><br></code>`<code><br>server/<br>├── models/<br>│   ├── LearningProgress.js      # Progress tracking model<br>│   ├── TeluguStory.js           # Story content model<br>│   └── User.js                  # User management<br>├── routes/<br>│   ├── learning-progress.js     # Progress API endpoints<br>│   ├── teluguStories.js         # Story management<br>│   └── auth.js                  # Authentication<br>└── server.js                    # Main server file<br></code>`<code><br><br>---<br><br><h2>Speech Synthesis (Text-to-Speech)</h2><br><br><h3>Overview</h3><br>Speech synthesis converts Telugu text into spoken audio, enabling users to hear correct pronunciation.<br><br><h3>Implementation Details</h3><br><br><div class="flow-diagram"><h4>1. Browser Compatibility Check</h4><br></code>`<code>typescript<br>const checkBrowserSupport = () => {<br>  const support = {<br>    speechSynthesis: 'speechSynthesis' in window,<br>    speechSynthesisUtterance: 'SpeechSynthesisUtterance' in window,<br>    voices: false,<br>    voicesCount: 0<br>  };<br>  <br>  if (support.speechSynthesis) {<br>    const voices = window.speechSynthesis.getVoices();<br>    support.voices = voices.length > 0;<br>    support.voicesCount = voices.length;<br>  }<br>  <br>  return support;<br>};<br></code>`<code><br><br><div class="flow-diagram"><h4>2. Voice Selection Strategy</h4><br>The application uses a priority-based approach for selecting the best voice for Telugu:<br><br><li><strong>Telugu Voice</strong> (</code>te-IN<code>): Primary choice if available</li><br><li><strong>Hindi Voice</strong> (</code>hi-IN<code>): Secondary choice (can pronounce Telugu well)</li><br><li><strong>Indian Language Voice</strong>: Fallback for any Indian language voice</li><br><li><strong>English Voice</strong>: Final fallback</li><br><br></code>`<code>typescript<br>// Priority order for Telugu speech<br>let selectedVoice = null;<br><br>// 1. First try to find a Telugu voice<br>selectedVoice = voices.find(voice => voice.lang.startsWith('te'));<br><br>// 2. If no Telugu voice, try Hindi voice (can speak Telugu)<br>if (!selectedVoice) {<br>  selectedVoice = voices.find(voice => <br>    voice.lang.startsWith('hi') || <br>    voice.name.toLowerCase().includes('hindi')<br>  );<br>}<br><br>// 3. If no Hindi voice, try any Indian language voice<br>if (!selectedVoice) {<br>  selectedVoice = voices.find(voice => <br>    voice.name.toLowerCase().includes('indian')<br>  );<br>}<br></code>`<code><br><br><div class="flow-diagram"><h4>3. Speech Configuration</h4><br></code>`<code>typescript<br>const utterance = new SpeechSynthesisUtterance(text);<br>utterance.lang = 'hi-IN';        // Use Hindi language code for Telugu<br>utterance.rate = 0.6;            // Slightly slower for better clarity<br>utterance.pitch = 1.0;           // Normal pitch<br>utterance.volume = 1.0;          // Full volume<br>utterance.voice = selectedVoice; // Assign selected voice<br></code>`<code><br><br><div class="flow-diagram"><h4>4. Error Handling & Retry Logic</h4><br></code>`<code>typescript<br>utterance.onerror = (event) => {<br>  if (event.error === 'interrupted') {<br>    // Retry once after a short delay<br>    setTimeout(() => {<br>      speakText(text, options);<br>    }, 100);<br>  } else if (event.error === 'language-unavailable') {<br>    // Try fallback with English<br>    speakText(text, { ...options, lang: 'en-US' });<br>  }<br>};<br></code>`<code><br><br>---<br><br><h2>Speech Recognition (Speech-to-Text)</h2><br><br><h3>Overview</h3><br>Speech recognition captures user speech and converts it to text for pronunciation evaluation.<br><br><h3>Implementation Details</h3><br><br><div class="flow-diagram"><h4>1. Browser Compatibility</h4><br></code>`<code>typescript<br>declare global {<br>  interface Window {<br>    SpeechRecognition: any;<br>    webkitSpeechRecognition: any;<br>  }<br>}<br><br>const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;<br></code>`<code><br><br><div class="flow-diagram"><h4>2. Recognition Configuration</h4><br></code>`<code>typescript<br>const recognition = new SpeechRecognition();<br>recognition.continuous = false;           // Single utterance<br>recognition.interimResults = false;       // Final results only<br>recognition.lang = 'te-IN';              // Telugu language<br>recognition.maxAlternatives = 1;          // Single result<br></code>`<code><br><br><div class="flow-diagram"><h4>3. Event Handlers</h4><br></code>`<code>typescript<br>recognition.onstart = () => {<br>  setIsListening(true);<br>  console.log('🎤 Speech recognition started');<br>};<br><br>recognition.onresult = (event) => {<br>  const transcript = event.results[0][0].transcript;<br>  setSpokenWord(transcript);<br>  evaluatePronunciation(transcript, expectedWord);<br>};<br><br>recognition.onerror = (event) => {<br>  console.error('Speech recognition error:', event.error);<br>  setIsListening(false);<br>};<br></code>`<code><br><br>---<br><br><h2>Telugu Dictation Component</h2><br><br><h3>Overview</h3><br>The Telugu Dictation component provides word-by-word pronunciation practice with real-time feedback.<br><br><h3>Key Features</h3><br><br><div class="flow-diagram"><h4>1. Word Categories by Length</h4><br></code>`<code>typescript<br>const TELUGU_WORDS = {<br>  2: ["అమ", "అప", "అక", "అన", "అత", "అయ", "అవ", "అల", "అర", "అస", ...],<br>  3: ["అమ్మ", "అప్ప", "అక్క", "అన్న", "అత్త", "అయ్య", "అవ్వ", ...],<br>  4: ["అమ్మా", "అప్పా", "అక్కా", "అన్నా", "అత్తా", "అయ్యా", ...],<br>  5: ["అమ్మాయి", "అప్పాయి", "అక్కాయి", "అన్నాయి", ...],<br>  6: ["అమ్మాయికి", "అప్పాయికి", "అక్కాయికి", "అన్నాయికి", ...]<br>};<br></code>`<code><br><br><div class="flow-diagram"><h4>2. Pronunciation Evaluation</h4><br></code>`<code>typescript<br>const evaluatePronunciation = (spoken: string, expected: string) => {<br>  // Normalize both strings<br>  const normalizedSpoken = spoken.toLowerCase().trim();<br>  const normalizedExpected = expected.toLowerCase().trim();<br>  <br>  // Direct comparison<br>  if (normalizedSpoken === normalizedExpected) {<br>    return 'correct';<br>  }<br>  <br>  // Similarity check for lenient evaluation<br>  const similarity = calculateSimilarity(normalizedSpoken, normalizedExpected);<br>  return similarity >= 0.7 ? 'correct' : 'incorrect';<br>};<br></code>`<code><br><br><div class="flow-diagram"><h4>3. Progress Tracking</h4><br></code>`<code>typescript<br>const saveProgress = async (exerciseId: number, score: number, attempts: number = 1) => {<br>  const response = await fetch('/api/learning-progress/dictation', {<br>    method: 'POST',<br>    headers: {<br>      'Content-Type': 'application/json',<br>      'Authorization': </code>Bearer ${localStorage.getItem('token')}<code><br>    },<br>    body: JSON.stringify({<br>      exerciseId,<br>      score,<br>      attempts,<br>      timeSpent: Date.now() - wordStartTime<br>    })<br>  });<br>};<br></code>`<code><br><br><h3>User Flow</h3><br><li><strong>Word Selection</strong>: User selects word length (2-6 characters)</li><br><li><strong>Audio Playback</strong>: System speaks the word using speech synthesis</li><br><li><strong>Speech Input</strong>: User speaks the word into microphone</li><br><li><strong>Evaluation</strong>: System compares spoken word with expected word</li><br><li><strong>Feedback</strong>: Visual feedback (green/red) and score update</li><br><li><strong>Progression</strong>: Move to next word or retry current word</li><br><br>---<br><br><h2>Telugu Reading Component</h2><br><br><h3>Overview</h3><br>The Telugu Reading component provides story reading practice with continuous pronunciation evaluation.<br><br><h3>Key Features</h3><br><br><div class="flow-diagram"><h4>1. Story Display</h4><br></code>`<code>typescript<br>interface TeluguStory {<br>  title: string;<br>  teluguTitle: string;<br>  content: string;<br>  teluguContent: string;<br>  paragraphs: Array<{<br>    content: string;<br>    teluguContent: string;<br>    order: number;<br>    hasAudio: boolean;<br>  }>;<br>}<br></code>`<code><br><br><div class="flow-diagram"><h4>2. Word-by-Word Processing</h4><br></code>`<code>typescript<br>const processWords = (text: string) => {<br>  // Split text into words while preserving Telugu script<br>  const words = text.split(/\s+/).filter(word => word.length > 0);<br>  setAllWords(words);<br>  setCurrentWordIndex(0);<br>};<br></code>`<code><br><br><div class="flow-diagram"><h4>3. Smart Word Matching</h4><br></code>`<code>typescript<br>const findMatchingWord = (spokenText: string, currentIndex: number) => {<br>  const normalizedSpoken = spokenText.toLowerCase().trim();<br>  <br>  // Check current word and nearby words<br>  for (let i = Math.max(0, currentIndex - 2); i <= Math.min(allWords.length - 1, currentIndex + 2); i++) {<br>    const word = allWords[i].toLowerCase().trim();<br>    if (normalizedSpoken.includes(word) || word.includes(normalizedSpoken)) {<br>      return i;<br>    }<br>  }<br>  <br>  return -1;<br>};<br></code>`<code><br><br><div class="flow-diagram"><h4>4. Continuous Reading Mode</h4><br><li><strong>Sequential Progression</strong>: Words are processed in order</li><br><li><strong>Smart Skipping</strong>: Allows 2-3 word skips for natural reading flow</li><br><li><strong>Real-time Feedback</strong>: Immediate visual feedback for each word</li><br><li><strong>Progress Tracking</strong>: Saves reading progress and completion status</li><br><br>---<br><br><h2>Progress Tracking System</h2><br><br><h3>Database Schema</h3><br><br>#### LearningProgress Model<br></code>`<code>javascript<br>const learningProgressSchema = new mongoose.Schema({<br>  userId: {<br>    type: mongoose.Schema.Types.ObjectId,<br>    ref: 'User',<br>    required: true,<br>    unique: true<br>  },<br>  <br>  // Dictation Progress<br>  dictation: {<br>    currentExerciseIndex: Number,<br>    completedExercises: [{<br>      exerciseId: Number,<br>      score: Number,<br>      attempts: Number,<br>      completedAt: Date<br>    }],<br>    totalScore: Number,<br>    totalAttempts: Number,<br>    lastAccessed: Date<br>  },<br>  <br>  // Similar structure for sentenceFormation and spelling<br>});<br></code>`<code><br><br><h3>API Endpoints</h3><br><br><div class="flow-diagram"><h4>1. Save Progress</h4><br></code>`<code>javascript<br>POST /api/learning-progress/dictation<br>{<br>  "exerciseId": 1,<br>  "score": 100,<br>  "attempts": 1,<br>  "timeSpent": 5000<br>}<br></code>`<code><br><br><div class="flow-diagram"><h4>2. Load Progress</h4><br></code>`<code>javascript<br>GET /api/learning-progress<br>// Returns complete progress summary for user<br></code>`<code><br><br><div class="flow-diagram"><h4>3. Analytics</h4><br></code>`<code>javascript<br>GET /api/learning-progress/analytics<br>// Returns detailed analytics and performance metrics<br></code>`<code><br><br><h3>Progress Methods</h3><br></code>`<code>javascript<br>// Update dictation progress<br>learningProgressSchema.methods.updateDictationProgress = function(exerciseId, score, attempts = 1) {<br>  // Find existing exercise or create new one<br>  const existingIndex = this.dictation.completedExercises.findIndex(<br>    ex => ex.exerciseId === exerciseId<br>  );<br>  <br>  if (existingIndex >= 0) {<br>    // Update existing exercise with better score<br>    this.dictation.completedExercises[existingIndex].score = Math.max(<br>      this.dictation.completedExercises[existingIndex].score,<br>      score<br>    );<br>  } else {<br>    // Add new completed exercise<br>    this.dictation.completedExercises.push({<br>      exerciseId,<br>      score,<br>      attempts,<br>      completedAt: new Date()<br>    });<br>  }<br>  <br>  // Update totals and statistics<br>  this.updateOverallStats();<br>};<br></code>`<code><br><br>---<br><br><h2>File Structure</h2><br><br><h3>Frontend Files</h3><br></code>`<code><br>src/<br>├── components/<br>│   ├── TeluguDictation.tsx          # 775 lines - Dictation practice<br>│   ├── TeluguReading.tsx            # 1133 lines - Story reading<br>│   ├── TeluguSpelling.tsx           # Audio-based spelling<br>│   ├── TeluguSentenceFormation.tsx  # Sentence construction<br>│   ├── TeluguFillBlanks.tsx         # Fill-in-the-blanks<br>│   └── TeluguUnitManager.tsx        # Unit management<br>├── utils/<br>│   └── speechUtils.ts               # 234 lines - Speech utilities<br>├── contexts/<br>│   └── AuthContext.tsx              # Authentication context<br>└── pages/<br>    └── LearnerDashboard.tsx         # Main dashboard<br></code>`<code><br><br><h3>Backend Files</h3><br></code>`<code><br>server/<br>├── models/<br>│   ├── LearningProgress.js          # 347 lines - Progress tracking<br>│   ├── TeluguStory.js               # Story content model<br>│   ├── User.js                      # User management<br>│   └── Exam.js                      # Assessment model<br>├── routes/<br>│   ├── learning-progress.js         # Progress API<br>│   ├── teluguStories.js             # Story management<br>│   ├── auth.js                      # Authentication<br>│   └── students.js                  # Student management<br>└── server.js                        # Main server<br></code>`<code><br><br>---<br><br><h2>Technical Implementation</h2><br><br><h3>Speech Synthesis Flow</h3><br><li><strong>Text Input</strong>: Component calls </code>speakText(text, options)<code></li><br><li><strong>Voice Selection</strong>: System finds best available voice for Telugu</li><br><li><strong>Utterance Creation</strong>: Creates </code>SpeechSynthesisUtterance<code> with configuration</li><br><li><strong>Error Handling</strong>: Implements retry logic and fallback options</li><br><li><strong>Audio Playback</strong>: Browser speaks the text using selected voice</li><br><br><h3>Speech Recognition Flow</h3><br><li><strong>Initialization</strong>: Creates </code>SpeechRecognition<code> instance with Telugu language</li><br><li><strong>Event Setup</strong>: Configures </code>onstart<code>, </code>onresult<code>, </code>onerror<code> handlers</li><br><li><strong>Audio Capture</strong>: Starts listening for user speech</li><br><li><strong>Text Processing</strong>: Converts speech to text transcript</li><br><li><strong>Evaluation</strong>: Compares transcript with expected word/text</li><br><li><strong>Feedback</strong>: Provides visual and audio feedback</li><br><br><h3>Progress Tracking Flow</h3><br><li><strong>Exercise Completion</strong>: Component calls progress API</li><br><li><strong>Data Validation</strong>: Backend validates exercise data</li><br><li><strong>Database Update</strong>: Updates user's progress record</li><br><li><strong>Statistics Calculation</strong>: Recalculates overall statistics</li><br><li><strong>Response</strong>: Returns updated progress to frontend</li><br><br><h3>Error Handling Strategy</h3><br><li><strong>Browser Compatibility</strong>: Checks for speech API support</li><br><li><strong>Voice Availability</strong>: Handles missing voices gracefully</li><br><li><strong>Network Issues</strong>: Implements retry logic for API calls</li><br><li><strong>User Permissions</strong>: Handles microphone access denial</li><br><li><strong>Speech Recognition Errors</strong>: Provides fallback options</li><br><br>---<br><br><h2>Troubleshooting</h2><br><br><h3>Common Issues</h3><br><br><div class="flow-diagram"><h4>1. Speech Synthesis Not Working</h4><br><strong>Symptoms</strong>: No audio playback<br><strong>Solutions</strong>:<br><li>Check browser support: </code>'speechSynthesis' in window<code></li><br><li>Verify voice availability: </code>window.speechSynthesis.getVoices()<code></li><br><li>Try different language codes: </code>'hi-IN'<code> for Telugu</li><br><li>Check browser permissions and settings</li><br><br><div class="flow-diagram"><h4>2. Speech Recognition Not Working</h4><br><strong>Symptoms</strong>: Microphone not responding<br><strong>Solutions</strong>:<br><li>Check microphone permissions</li><br><li>Verify HTTPS connection (required for microphone access)</li><br><li>Test with different browsers (Chrome recommended)</li><br><li>Check browser console for errors</li><br><br><div class="flow-diagram"><h4>3. Progress Not Saving</h4><br><strong>Symptoms</strong>: Progress lost after page refresh<br><strong>Solutions</strong>:<br><li>Verify user authentication</li><br><li>Check API endpoint availability</li><br><li>Validate request format and data</li><br><li>Check database connection</li><br><br><div class="flow-diagram"><h4>4. Voice Quality Issues</h4><br><strong>Symptoms</strong>: Poor pronunciation or robotic voice<br><strong>Solutions</strong>:<br><li>Try different voice selection strategies</li><br><li>Adjust speech rate and pitch settings</li><br><li>Use Hindi voice for better Telugu pronunciation</li><br><li>Consider text preprocessing for better results</li><br><br><h3>Debug Tools</h3><br><br><div class="flow-diagram"><h4>1. Browser Console Logging</h4><br></code>`<code>typescript<br>console.log('🎤 Available voices:', voices.map(v => </code>${v.name} (${v.lang})<code>));<br>console.log('<div class="success">✅ Speech synthesis started:', text);</div><br>console.error('<div class="error">❌ Speech synthesis error:', event);</div><br></code>`<code><br><br><div class="flow-diagram"><h4>2. Test Functions</h4><br></code>`<code>typescript<br>// Test speech synthesis<br>export const testSpeechSynthesis = () => {<br>  const support = checkBrowserSupport();<br>  return support.speechSynthesis && support.voices;<br>};<br><br>// Test Telugu speech specifically<br>export const testTeluguSpeech = (text: string = 'రండి') => {<br>  const voices = window.speechSynthesis.getVoices();<br>  const hindiVoice = voices.find(voice => voice.lang.startsWith('hi'));<br>  // ... implementation<br>};<br></code>`<code><br><br><div class="flow-diagram"><h4>3. Network Debugging</h4><br></code>`<code>javascript<br>// Check API responses<br>fetch('/api/learning-progress')<br>  .then(response => response.json())<br>  .then(data => console.log('Progress data:', data))<br>  .catch(error => console.error('API error:', error));<br></code>`<code><br><br>---<br><br><h2>Performance Optimization</h2><br><br><h3>1. Voice Caching</h3><br></code>`<code>typescript<br>// Cache voices to avoid repeated API calls<br>let cachedVoices: SpeechSynthesisVoice[] = [];<br><br>const getVoices = () => {<br>  if (cachedVoices.length === 0) {<br>    cachedVoices = window.speechSynthesis.getVoices();<br>  }<br>  return cachedVoices;<br>};<br></code>`<code><br><br><h3>2. Speech Queue Management</h3><br></code>`<code>typescript<br>// Prevent multiple simultaneous speech requests<br>let isSpeaking = false;<br><br>const speakText = (text: string) => {<br>  if (isSpeaking) {<br>    window.speechSynthesis.cancel();<br>  }<br>  isSpeaking = true;<br>  // ... speech implementation<br>};<br></code>`<code><br><br><h3>3. Progress Batching</h3><br></code>`<code>typescript<br>// Batch progress updates to reduce API calls<br>let pendingProgress: any[] = [];<br><br>const saveProgress = (data: any) => {<br>  pendingProgress.push(data);<br>  <br>  if (pendingProgress.length >= 5) {<br>    // Send batch update<br>    sendBatchProgress(pendingProgress);<br>    pendingProgress = [];<br>  }<br>};<br></code>``<br><br>---<br><br><h2>Future Enhancements</h2><br><br><h3>1. Advanced Speech Recognition</h3><br><li>Implement continuous speech recognition</li><br><li>Add support for sentence-level evaluation</li><br><li>Improve accuracy with machine learning models</li><br><br><h3>2. Enhanced Progress Analytics</h3><br><li>Add detailed performance metrics</li><br><li>Implement learning path recommendations</li><br><li>Create progress visualization dashboards</li><br><br><h3>3. Offline Support</h3><br><li>Implement service workers for offline functionality</li><br><li>Cache speech synthesis for common words</li><br><li>Add offline progress tracking</li><br><br><h3>4. Accessibility Features</h3><br><li>Add keyboard navigation support</li><br><li>Implement screen reader compatibility</li><br><li>Add visual indicators for audio states</li></ul><br><br>---<br><br><h2>Conclusion</h2><br><br>The Telugu Learning Application provides a comprehensive speech-based learning experience through modern web technologies. The combination of speech synthesis and recognition creates an interactive environment where users can practice Telugu pronunciation with real-time feedback.<br><br>The modular architecture allows for easy extension and maintenance, while the robust error handling ensures a smooth user experience across different browsers and devices. The progress tracking system provides valuable insights into learning patterns and helps users maintain their learning momentum.<br><br>By leveraging the Web Speech API and implementing thoughtful fallback strategies, the application delivers a reliable and engaging learning experience for Telugu language acquisition.<br></p>
+    </div>
+    
+    <script>
+        // Add page breaks for better PDF formatting
+        document.addEventListener('DOMContentLoaded', function() {
+            const h1Elements = document.querySelectorAll('h1');
+            h1Elements.forEach((h1, index) => {
+                if (index > 0) {
+                    h1.classList.add('page-break');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
