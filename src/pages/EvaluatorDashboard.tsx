@@ -21,6 +21,7 @@ import {
   Star,
   AlertCircle,
   TrendingUp,
+  Target,
   Award,
   Filter,
   LogOut,

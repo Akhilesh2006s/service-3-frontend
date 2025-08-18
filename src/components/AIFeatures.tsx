@@ -8,8 +8,8 @@ import {
   BarChart3, 
   Users, 
   BookOpen, 
-  Target,
-  Zap
+  Zap,
+  CheckCircle
 } from "lucide-react";
 
 const features = [
@@ -128,15 +128,15 @@ const AIFeatures = () => {
                 </p>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-accent" />
+                    <CheckCircle className="w-5 h-5 text-accent" />
                     <span>99.5% pronunciation accuracy</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-accent" />
+                    <CheckCircle className="w-5 h-5 text-accent" />
                     <span>Instant translation and feedback</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-accent" />
+                    <CheckCircle className="w-5 h-5 text-accent" />
                     <span>Native speaker comparison</span>
                   </li>
                 </ul>
