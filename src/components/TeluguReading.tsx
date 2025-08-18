@@ -416,6 +416,39 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
   // Add state to track speech attempts
   const [speechAttempts, setSpeechAttempts] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  
+  // Enhanced voice loading for mobile compatibility
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      console.log('🎤 Voice loading triggered, found:', voices.length);
+      
+      if (voices.length > 0) {
+        setAvailableVoices(voices);
+        console.log('✅ Voices loaded and stored:', voices.map(v => `${v.name} (${v.lang})`));
+      }
+    };
+    
+    // Load voices immediately if available
+    loadVoices();
+    
+    // Listen for voice loading events
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    
+    // Mobile-specific: Try loading voices multiple times
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      console.log('📱 Mobile device detected, using enhanced voice loading');
+      setTimeout(loadVoices, 100);
+      setTimeout(loadVoices, 500);
+      setTimeout(loadVoices, 1000);
+    }
+    
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
   
   // Helper: split long Telugu text into speakable chunks and preserve sentence boundaries when possible
   const splitTextIntoChunks = (fullText: string, maxLength: number = 260): string[] => {
@@ -473,30 +506,40 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
       return;
     }
     
-    // Check if voices are available
-    const voices = window.speechSynthesis.getVoices();
+    // Use stored voices or get fresh ones
+    const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
     console.log('🎤 Available voices:', voices.length);
     
     if (voices.length === 0) {
       console.warn('⚠️ No voices available, trying to load...');
-      // Try to trigger voice loading
-      window.speechSynthesis.getVoices();
       
-      // Wait a bit and try again
-      setTimeout(() => {
+      // Enhanced voice loading for mobile
+      const loadVoices = () => {
         const voicesAfterDelay = window.speechSynthesis.getVoices();
+        console.log('🔄 Attempting to load voices, found:', voicesAfterDelay.length);
+        
         if (voicesAfterDelay.length > 0) {
-          console.log('✅ Voices loaded after delay:', voicesAfterDelay.length);
-          speakTelugu(text); // Retry
+          console.log('✅ Voices loaded successfully:', voicesAfterDelay.length);
+          console.log('🎤 Available voices:', voicesAfterDelay.map(v => `${v.name} (${v.lang})`));
+          speakTelugu(text); // Retry with loaded voices
         } else {
-          console.error('❌ Still no voices available');
+          console.error('❌ Still no voices available after loading attempt');
           toast({
-            title: "No Voices",
-            description: "No speech voices available. Please try again.",
+            title: "Voice Loading Issue",
+            description: "Unable to load speech voices. Please refresh the page and try again.",
             variant: "destructive"
           });
         }
-      }, 1000);
+      };
+      
+      // Try multiple loading strategies for mobile
+      window.speechSynthesis.getVoices(); // Trigger loading
+      
+      // Wait and try again with increasing delays
+      setTimeout(loadVoices, 500);
+      setTimeout(loadVoices, 1500);
+      setTimeout(loadVoices, 3000);
+      
       return;
     }
     
@@ -508,11 +551,61 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
       const chunks = splitTextIntoChunks(text, 260);
       console.log(`🧩 Prepared ${chunks.length} chunk(s) for speech`);
       
-      // Pre-select a voice once
-      let selectedVoice = voices.find(v => v.lang === 'te-IN')
-        || voices.find(v => v.lang.startsWith('hi'))
-        || voices.find(v => v.lang === 'en-IN')
-        || voices[0];
+      // Enhanced voice selection for mobile compatibility
+      let selectedVoice = null;
+      
+      // Log all available voices for debugging
+      console.log('🎤 All available voices:', voices.map(v => `${v.name} (${v.lang}) - ${v.localService ? 'local' : 'remote'}`));
+      
+      // Priority 1: Telugu voice (preferred)
+      selectedVoice = voices.find(v => v.lang === 'te-IN');
+      if (selectedVoice) {
+        console.log('✅ Found Telugu voice:', selectedVoice.name);
+      }
+      
+      // Priority 2: Hindi voices (good for Telugu on mobile)
+      if (!selectedVoice) {
+        selectedVoice = voices.find(v => 
+          v.lang.startsWith('hi') || 
+          v.name.toLowerCase().includes('hindi') ||
+          v.name.toLowerCase().includes('हिन्दी')
+        );
+        if (selectedVoice) {
+          console.log('✅ Found Hindi voice:', selectedVoice.name);
+        }
+      }
+      
+      // Priority 3: Indian English (often works well on mobile)
+      if (!selectedVoice) {
+        selectedVoice = voices.find(v => 
+          v.lang === 'en-IN' || 
+          v.name.toLowerCase().includes('india') ||
+          v.name.toLowerCase().includes('indian')
+        );
+        if (selectedVoice) {
+          console.log('✅ Found Indian English voice:', selectedVoice.name);
+        }
+      }
+      
+      // Priority 4: Any English voice (fallback)
+      if (!selectedVoice) {
+        selectedVoice = voices.find(v => v.lang.startsWith('en'));
+        if (selectedVoice) {
+          console.log('✅ Found English voice:', selectedVoice.name);
+        }
+      }
+      
+      // Priority 5: Any available voice (last resort)
+      if (!selectedVoice && voices.length > 0) {
+        selectedVoice = voices[0];
+        console.log('⚠️ Using fallback voice:', selectedVoice.name);
+      }
+      
+      // Mobile-specific adjustments
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile && selectedVoice) {
+        console.log('📱 Mobile device detected, using voice:', selectedVoice.name);
+      }
       
       // Stop any current speech first
       window.speechSynthesis.cancel();
@@ -531,13 +624,27 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
         if (selectedVoice) {
           utterance.voice = selectedVoice as SpeechSynthesisVoice;
           utterance.lang = selectedVoice.lang;
+          console.log('🎤 Using voice:', selectedVoice.name, `(${selectedVoice.lang})`);
         } else {
           utterance.lang = 'hi-IN';
+          console.log('⚠️ No voice selected, using Hindi language code');
         }
         
-        utterance.rate = 0.7;
-        utterance.pitch = 1.0;
-        utterance.volume = 1.0;
+        // Mobile-optimized speech settings
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          // Mobile-specific settings for better compatibility
+          utterance.rate = 0.6; // Slightly slower for mobile
+          utterance.pitch = 1.1; // Slightly higher pitch for clarity
+          utterance.volume = 0.9; // Slightly lower volume to avoid distortion
+          console.log('📱 Applied mobile-optimized speech settings');
+        } else {
+          // Desktop settings
+          utterance.rate = 0.7;
+          utterance.pitch = 1.0;
+          utterance.volume = 1.0;
+        }
         
         utterance.onstart = () => {
           if (index === 0) {
@@ -593,6 +700,53 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
       window.speechSynthesis.cancel();
     }
     setIsPlaying(false);
+  };
+  
+  // Mobile voice testing function
+  const testMobileVoice = () => {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log('📱 Mobile device detected:', isMobile);
+    console.log('🎤 Available voices:', availableVoices.map(v => `${v.name} (${v.lang})`));
+    
+    if (availableVoices.length === 0) {
+      toast({
+        title: "No Voices Available",
+        description: "Please refresh the page and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Test with a simple Telugu word
+    const testText = "నమస్కారం";
+    const utterance = new SpeechSynthesisUtterance(testText);
+    
+    // Try to find the best voice for mobile
+    const bestVoice = availableVoices.find(v => v.lang === 'te-IN') ||
+                     availableVoices.find(v => v.lang.startsWith('hi')) ||
+                     availableVoices.find(v => v.lang === 'en-IN') ||
+                     availableVoices[0];
+    
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+      utterance.lang = bestVoice.lang;
+      console.log('🧪 Testing with voice:', bestVoice.name, `(${bestVoice.lang})`);
+    }
+    
+    utterance.rate = 0.6;
+    utterance.pitch = 1.1;
+    utterance.volume = 0.9;
+    
+    utterance.onstart = () => console.log('🧪 Voice test started');
+    utterance.onend = () => console.log('🧪 Voice test completed');
+    utterance.onerror = (e) => console.error('🧪 Voice test error:', e);
+    
+    window.speechSynthesis.speak(utterance);
+    
+    toast({
+      title: "Voice Test",
+      description: `Testing voice: ${bestVoice?.name || 'Unknown'}`,
+    });
   };
 
   // Compare pronunciation with expected word
@@ -1043,6 +1197,19 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
           <Badge className="bg-blue-100 text-blue-800 border-blue-200">
             {teluguStories.length} stories
           </Badge>
+        </div>
+        
+        {/* Mobile Voice Test Button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={testMobileVoice}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2 text-xs"
+          >
+            <Volume2 className="w-3 h-3" />
+            Test Voice (Mobile)
+          </Button>
         </div>
       </div>
 
