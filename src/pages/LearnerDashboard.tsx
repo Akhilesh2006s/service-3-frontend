@@ -44,7 +44,7 @@ import YouTubePlayer from "@/components/YouTubePlayer";
 import { isYouTubeUrl } from "@/utils/youtubeUtils";
 import TeluguReading from "@/components/TeluguReading";
 
-import CustomDictation from "@/components/CustomDictation";
+import TeluguDictation from "@/components/TeluguDictation";
 
 import TeluguSentenceFormation from "@/components/TeluguSentenceFormation";
 import TeluguSpelling from "@/components/TeluguSpelling";
@@ -1050,10 +1050,10 @@ const LearnerDashboard = () => {
                   <span className="sm:hidden">చదవడం</span>
                 </TabsTrigger>
 
-                <TabsTrigger key="custom-dictation" value="custom-dictation" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                <TabsTrigger key="telugu-dictation" value="telugu-dictation" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
                   <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Custom Dictation</span>
-                  <span className="sm:hidden">Custom</span>
+                  <span className="hidden sm:inline">తెలుగు డిక్టేషన్</span>
+                  <span className="sm:hidden">డిక్టేషన్</span>
                 </TabsTrigger>
                 <TabsTrigger key="telugu-sentence-formation" value="telugu-sentence-formation" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
                   <Type className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -1181,7 +1181,7 @@ const LearnerDashboard = () => {
                           selectedMilestone === "all" || exam.milestone?.toString() === selectedMilestone
                         )
                         .map((exam, index) => (
-                        <Card key={exam.id || generateUniqueKey('exam', undefined, index)} className={`hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15 ${
+                        <Card key={exam.id || `exam-${index}`} className={`hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15 ${
                           exam.isCompleted ? 'ring-2 ring-green-200' : ''
                         }`}>
                           <CardContent className="p-4 sm:p-6">
@@ -1496,8 +1496,8 @@ const LearnerDashboard = () => {
 
 
 
-              <TabsContent value="custom-dictation" className="space-y-4">
-                <CustomDictation />
+              <TabsContent value="telugu-dictation" className="space-y-4">
+                <TeluguDictation />
               </TabsContent>
 
 
