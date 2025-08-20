@@ -43,7 +43,7 @@ import DescriptiveResultsView from "@/components/DescriptiveResultsView";
 import YouTubePlayer from "@/components/YouTubePlayer";
 import { isYouTubeUrl } from "@/utils/youtubeUtils";
 import TeluguReading from "@/components/TeluguReading";
-import TeluguDictation from "@/components/TeluguDictation";
+
 import CustomDictation from "@/components/CustomDictation";
 
 import TeluguSentenceFormation from "@/components/TeluguSentenceFormation";
@@ -1049,11 +1049,7 @@ const LearnerDashboard = () => {
                   <span className="hidden sm:inline">తెలుగు చదవడం</span>
                   <span className="sm:hidden">చదవడం</span>
                 </TabsTrigger>
-                <TabsTrigger key="telugu-dictation" value="telugu-dictation" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
-                  <Type className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">తెలుగు డిక్టేషన్</span>
-                  <span className="sm:hidden">డిక్టేషన్</span>
-                </TabsTrigger>
+
                 <TabsTrigger key="custom-dictation" value="custom-dictation" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
                   <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Custom Dictation</span>
@@ -1498,9 +1494,7 @@ const LearnerDashboard = () => {
                 <TeluguReading currentMilestone={currentMilestone} />
               </TabsContent>
 
-              <TabsContent value="telugu-dictation" className="space-y-4">
-                <TeluguDictation currentMilestone={currentMilestone} />
-              </TabsContent>
+
 
               <TabsContent value="custom-dictation" className="space-y-4">
                 <CustomDictation />

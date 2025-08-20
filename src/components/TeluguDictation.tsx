@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Mic, 
   MicOff,
@@ -13,7 +14,10 @@ import {
   Target,
   ArrowRight,
   Save,
-  BarChart3
+  BarChart3,
+  Play,
+  Users,
+  Clock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,14 +31,27 @@ declare global {
   }
 }
 
-// Telugu words by length
-const TELUGU_WORDS = {
-  2: ["అమ", "అప", "అక", "అన", "అత", "అయ", "అవ", "అల", "అర", "అస", "ఇమ", "ఇప", "ఇక", "ఇన", "ఇత", "ఇయ", "ఇవ", "ఇల", "ఇర", "ఇస"],
-  3: ["అమ్మ", "అప్ప", "అక్క", "అన్న", "అత్త", "అయ్య", "అవ్వ", "అల్ల", "అర్ర", "అస్స", "ఇమ్మ", "ఇప్ప", "ఇక్క", "ఇన్న", "ఇత్త", "ఇయ్య", "ఇవ్వ", "ఇల్ల", "ఇర్ర", "ఇస్స", "ఉమ్మ", "ఉప్ప", "ఉక్క", "ఉన్న", "ఉత్త", "ఉయ్య", "ఉవ్వ", "ఉల్ల", "ఉర్ర", "ఉస్స"],
-  4: ["అమ్మా", "అప్పా", "అక్కా", "అన్నా", "అత్తా", "అయ్యా", "అవ్వా", "అల్లా", "అర్రా", "అస్సా", "ఇమ్మా", "ఇప్పా", "ఇక్కా", "ఇన్నా", "ఇత్తా", "ఇయ్యా", "ఇవ్వా", "ఇల్లా", "ఇర్రా", "ఇస్సా", "ఉమ్మా", "ఉప్పా", "ఉక్కా", "ఉన్నా", "ఉత్తా", "ఉయ్యా", "ఉవ్వా", "ఉల్లా", "ఉర్రా", "ఉస్సా", "ఎమ్మా", "ఎప్పా", "ఎక్కా", "ఎన్నా", "ఎత్తా", "ఎయ్యా", "ఎవ్వా", "ఎల్లా", "ఎర్రా", "ఎస్సా"],
-  5: ["అమ్మాయి", "అప్పాయి", "అక్కాయి", "అన్నాయి", "అత్తాయి", "అయ్యాయి", "అవ్వాయి", "అల్లాయి", "అర్రాయి", "అస్సాయి", "ఇమ్మాయి", "ఇప్పాయి", "ఇక్కాయి", "ఇన్నాయి", "ఇత్తాయి", "ఇయ్యాయి", "ఇవ్వాయి", "ఇల్లాయి", "ఇర్రాయి", "ఇస్సాయి", "ఉమ్మాయి", "ఉప్పాయి", "ఉక్కాయి", "ఉన్నాయి", "ఉత్తాయి", "ఉయ్యాయి", "ఉవ్వాయి", "ఉల్లాయి", "ఉర్రాయి", "ఉస్సాయి", "ఎమ్మాయి", "ఎప్పాయి", "ఎక్కాయి", "ఎన్నాయి", "ఎత్తాయి", "ఎయ్యాయి", "ఎవ్వాయి", "ఎల్లాయి", "ఎర్రాయి", "ఎస్సాయి", "ఒమ్మాయి", "ఒప్పాయి", "ఒక్కాయి", "ఒన్నాయి", "ఒత్తాయి", "ఒయ్యాయి", "ఒవ్వాయి", "ఒల్లాయి", "ఒర్రాయి", "ఒస్సాయి"],
-  6: ["అమ్మాయికి", "అప్పాయికి", "అక్కాయికి", "అన్నాయికి", "అత్తాయికి", "అయ్యాయికి", "అవ్వాయికి", "అల్లాయికి", "అర్రాయికి", "అస్సాయికి", "ఇమ్మాయికి", "ఇప్పాయికి", "ఇక్కాయికి", "ఇన్నాయికి", "ఇత్తాయికి", "ఇయ్యాయికి", "ఇవ్వాయికి", "ఇల్లాయికి", "ఇర్రాయికి", "ఇస్సాయికి", "ఉమ్మాయికి", "ఉప్పాయికి", "ఉక్కాయికి", "ఉన్నాయికి", "ఉత్తాయికి", "ఉయ్యాయికి", "ఉవ్వాయికి", "ఉల్లాయికి", "ఉర్రాయికి", "ఉస్సాయికి", "ఎమ్మాయికి", "ఎప్పాయికి", "ఎక్కాయికి", "ఎన్నాయికి", "ఎత్తాయికి", "ఎయ్యాయికి", "ఎవ్వాయికి", "ఎల్లాయికి", "ఎర్రాయికి", "ఎస్సాయికి", "ఒమ్మాయికి", "ఒప్పాయికి", "ఒక్కాయికి", "ఒన్నాయికి", "ఒత్తాయికి", "ఒయ్యాయికి", "ఒవ్వాయికి", "ఒల్లాయికి", "ఒర్రాయికి", "ఒస్సాయికి", "అమ్మాయిలో", "అప్పాయిలో", "అక్కాయిలో", "అన్నాయిలో", "అత్తాయిలో", "అయ్యాయిలో", "అవ్వాయిలో", "అల్లాయిలో", "అర్రాయిలో", "అస్సాయిలో"]
-};
+interface Word {
+  word: string;
+  meaning: string;
+  pronunciation: string;
+}
+
+interface DictationExercise {
+  _id: string;
+  title: string;
+  description: string;
+  difficulty: 'easy' | 'medium' | 'hard' | 'very_hard' | 'expert';
+  words: Word[];
+  totalWords: number;
+  isPublished: boolean;
+  createdBy: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+}
 
 interface TeluguDictationProps {
   currentMilestone?: number;
@@ -43,7 +60,9 @@ interface TeluguDictationProps {
 const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [selectedLength, setSelectedLength] = useState<number>(3);
+  const [exercises, setExercises] = useState<DictationExercise[]>([]);
+  const [selectedExercise, setSelectedExercise] = useState<DictationExercise | null>(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [currentWordIndex, setCurrentWordIndex] = useState<number>(0);
   const [isListening, setIsListening] = useState(false);
   const [currentWord, setCurrentWord] = useState<string>('');
@@ -54,13 +73,62 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
   const [wordStartTime, setWordStartTime] = useState<number>(0);
   const [isMovingToNext, setIsMovingToNext] = useState<boolean>(false);
   const [isProcessingResult, setIsProcessingResult] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showExerciseList, setShowExerciseList] = useState(true);
   
   // Progress tracking state
-  const [isLoading, setIsLoading] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
 
-  const words = TELUGU_WORDS[selectedLength as keyof typeof TELUGU_WORDS] || [];
+  // Load exercises on component mount
+  useEffect(() => {
+    loadExercises();
+  }, []);
+
+  const loadExercises = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/dictation-exercises', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setExercises(result.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading exercises:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dictation exercises",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredExercises = exercises.filter(exercise => {
+    if (selectedDifficulty === 'all') return true;
+    return exercise.difficulty === selectedDifficulty;
+  });
+
+  const startExercise = (exercise: DictationExercise) => {
+    setSelectedExercise(exercise);
+    setCurrentWordIndex(0);
+    setCurrentWord(exercise.words[0]?.word || '');
+    setResult('pending');
+    setSpokenWord('');
+    setScore({ correct: 0, total: 0 });
+    setShowExerciseList(false);
+    setWordStartTime(Date.now() + 200);
+    setIsProcessingResult(false);
+  };
 
   // API functions for progress tracking
   const loadProgress = async () => {
@@ -154,21 +222,6 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
       loadProgress();
     }
   }, [user]);
-
-  useEffect(() => {
-    if (words.length > 0) {
-      // Only reset if we're changing word length categories
-      // Don't reset if we're just continuing with the same category
-      setCurrentWord(words[0]);
-      setCurrentWordIndex(0);
-      setResult('pending');
-      setSpokenWord('');
-      setScore({ correct: 0, total: 0 });
-      setWordStartTime(Date.now() + 200);
-      setIsProcessingResult(false);
-      setIsMovingToNext(false);
-    }
-  }, [selectedLength]);
 
   useEffect(() => {
     return () => {
@@ -276,7 +329,7 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
   };
 
   const startListening = () => {
-    if (!currentWord) return;
+    if (!currentWord || !selectedExercise) return;
 
     // Stop any existing recognition first
     if (recognitionInstance) {
@@ -299,73 +352,73 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
       recognition.lang = 'te-IN';
       recognition.maxAlternatives = 3;
 
-             recognition.onresult = (event) => {
-         let finalTranscript = '';
-         let interimTranscript = '';
-         
-         for (let i = event.resultIndex; i < event.results.length; i++) {
-           if (event.results[i].isFinal) {
-             finalTranscript += event.results[i][0].transcript;
-           } else {
-             interimTranscript += event.results[i][0].transcript;
-           }
-         }
-         
-         const transcript = finalTranscript || interimTranscript;
-         if (!transcript) return;
-         
-         // Only process transcripts that came after the current word started
-         const currentTime = Date.now();
-         if (currentTime < wordStartTime) {
-           console.log('⏰ Ignoring old transcript:', transcript);
-           return;
-         }
-         
-         console.log('Spoken:', transcript);
-         console.log('Expected:', currentWord);
-         console.log('Word start time:', wordStartTime, 'Current time:', currentTime);
-         
-         setSpokenWord(transcript);
-         
-         const similarity = comparePronunciation(transcript, currentWord);
-         console.log('Similarity:', similarity);
-         
-         // Much lower threshold for better Telugu recognition
-         if (similarity > 0.2 && !isProcessingResult) {
-           console.log('✅ Correct pronunciation detected! Moving to next word...');
-           console.log('🔍 Current state - Processing:', isProcessingResult, 'Moving:', isMovingToNext);
-           
-           setIsProcessingResult(true);
-           setResult('correct');
-           setScore(prev => ({ correct: prev.correct + 1, total: prev.total + 1 }));
-           
-           // Save progress to backend
-           saveProgress(currentWordIndex, 100, 1);
-           
-           toast({
-              title: "Correct! 🎉",
-              description: "Great pronunciation! Click 'Next Word' to continue.",
-            });
-           
-           // Don't auto-progress - let user click Next Word manually
-           console.log('✅ Word completed - waiting for manual next');
-           setIsMovingToNext(false);
-           setIsProcessingResult(false);
-           
-         } else if (finalTranscript && similarity <= 0.2) {
-           // Only mark as incorrect if we have a final result and similarity is low
-           setResult('incorrect');
-           // Don't increment total score for incorrect attempts - only count when they get it right
-           
-           toast({
-             title: "Try Again",
-             description: "Pronunciation needs improvement. Listen and try again.",
-             variant: "destructive"
+      recognition.onresult = (event) => {
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        const transcript = finalTranscript || interimTranscript;
+        if (!transcript) return;
+        
+        // Only process transcripts that came after the current word started
+        const currentTime = Date.now();
+        if (currentTime < wordStartTime) {
+          console.log('⏰ Ignoring old transcript:', transcript);
+          return;
+        }
+        
+        console.log('Spoken:', transcript);
+        console.log('Expected:', currentWord);
+        console.log('Word start time:', wordStartTime, 'Current time:', currentTime);
+        
+        setSpokenWord(transcript);
+        
+        const similarity = comparePronunciation(transcript, currentWord);
+        console.log('Similarity:', similarity);
+        
+        // Much lower threshold for better Telugu recognition
+        if (similarity > 0.2 && !isProcessingResult) {
+          console.log('✅ Correct pronunciation detected! Moving to next word...');
+          console.log('🔍 Current state - Processing:', isProcessingResult, 'Moving:', isMovingToNext);
+          
+          setIsProcessingResult(true);
+          setResult('correct');
+          setScore(prev => ({ correct: prev.correct + 1, total: prev.total + 1 }));
+          
+          // Save progress to backend
+          saveProgress(currentWordIndex, 100, 1);
+          
+          toast({
+             title: "Correct! 🎉",
+             description: "Great pronunciation! Click 'Next Word' to continue.",
            });
-           
-           // Don't stop listening - keep it continuous for retry
-         }
-       };
+          
+          // Don't auto-progress - let user click Next Word manually
+          console.log('✅ Word completed - waiting for manual next');
+          setIsMovingToNext(false);
+          setIsProcessingResult(false);
+          
+        } else if (finalTranscript && similarity <= 0.2) {
+          // Only mark as incorrect if we have a final result and similarity is low
+          setResult('incorrect');
+          // Don't increment total score for incorrect attempts - only count when they get it right
+          
+          toast({
+            title: "Try Again",
+            description: "Pronunciation needs improvement. Listen and try again.",
+            variant: "destructive"
+          });
+          
+          // Don't stop listening - keep it continuous for retry
+        }
+      };
 
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
@@ -409,13 +462,15 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
   };
 
   const nextWord = () => {
-    const nextIndex = currentWordIndex + 1;
-    console.log('🔄 nextWord called - Current index:', currentWordIndex, 'Next index:', nextIndex, 'Total words:', words.length);
+    if (!selectedExercise) return;
     
-    if (nextIndex < words.length) {
-      console.log('📝 Moving to word:', words[nextIndex]);
+    const nextIndex = currentWordIndex + 1;
+    console.log('🔄 nextWord called - Current index:', currentWordIndex, 'Next index:', nextIndex, 'Total words:', selectedExercise.words.length);
+    
+    if (nextIndex < selectedExercise.words.length) {
+      console.log('📝 Moving to word:', selectedExercise.words[nextIndex].word);
       setCurrentWordIndex(nextIndex);
-      setCurrentWord(words[nextIndex]);
+      setCurrentWord(selectedExercise.words[nextIndex].word);
       setResult('pending');
       setSpokenWord('');
       setIsProcessingResult(false); // Reset processing state
@@ -426,7 +481,7 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
       console.log('⏰ Set word start time to:', newWordStartTime);
       
       // Don't auto-play - let user focus on pronunciation
-      console.log('📝 Word set to:', words[nextIndex]);
+      console.log('📝 Word set to:', selectedExercise.words[nextIndex].word);
     } else {
       console.log('🎉 Practice complete!');
       // Stop recognition when practice is complete
@@ -444,20 +499,14 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
     }
   };
 
-  const resetPractice = () => {
+  const resetExercise = () => {
+    if (!selectedExercise) return;
+    
     setCurrentWordIndex(0);
-    setCurrentWord(words[0]);
+    setCurrentWord(selectedExercise.words[0]?.word || '');
     setResult('pending');
     setSpokenWord('');
     setScore({ correct: 0, total: 0 });
-  };
-
-  const handleDifficultyChange = (length: number) => {
-    setSelectedLength(length);
-    setCurrentWordIndex(0);
-    setCurrentWord(TELUGU_WORDS[length as keyof typeof TELUGU_WORDS]?.[0] || '');
-    setResult('pending');
-    setSpokenWord('');
   };
 
   const stopListening = () => {
@@ -468,64 +517,170 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
     }
   };
 
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'hard': return 'bg-orange-100 text-orange-800';
+      case 'very_hard': return 'bg-red-100 text-red-800';
+      case 'expert': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getDifficultyLabel = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return 'Easy';
+      case 'medium': return 'Medium';
+      case 'hard': return 'Hard';
+      case 'very_hard': return 'Very Hard';
+      case 'expert': return 'Expert';
+      default: return difficulty;
+    }
+  };
+
+  // Show exercise list if no exercise is selected
+  if (showExerciseList) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h2 className="text-4xl font-bold text-gray-800">తెలుగు డిక్టేషన్</h2>
+          <p className="text-xl text-gray-600">
+            Practice Telugu pronunciation with trainer-created dictation exercises
+          </p>
+        </div>
+
+        {/* Difficulty Filter */}
+        <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
+          <CardHeader>
+            <CardTitle className="text-purple-700">Select Difficulty Level</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+              <SelectTrigger className="w-full md:w-64">
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Difficulties</SelectItem>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+                <SelectItem value="very_hard">Very Hard</SelectItem>
+                <SelectItem value="expert">Expert</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="mt-3 text-center text-sm text-gray-600">
+              {filteredExercises.length} exercises available
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Exercises List */}
+        {isLoading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading exercises...</p>
+          </div>
+        ) : filteredExercises.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-8">
+              <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-semibold mb-2">No Exercises Available</h4>
+              <p className="text-gray-600">
+                {selectedDifficulty === 'all' 
+                  ? 'No dictation exercises are available yet. Check back later!'
+                  : `No ${getDifficultyLabel(selectedDifficulty)} exercises available.`
+                }
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {filteredExercises.map((exercise) => (
+              <Card key={exercise._id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => startExercise(exercise)}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h4 className="text-lg font-semibold">{exercise.title}</h4>
+                        <Badge className={getDifficultyColor(exercise.difficulty)}>
+                          {getDifficultyLabel(exercise.difficulty)}
+                        </Badge>
+                      </div>
+                      
+                      <p className="text-gray-600 mb-3">{exercise.description}</p>
+                      
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Target className="w-4 h-4" />
+                          {exercise.totalWords} words
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          By {exercise.createdBy.name}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {new Date(exercise.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      {/* Preview of first few words */}
+                      <div className="mt-3">
+                        <p className="text-sm text-gray-600 mb-1">Sample words:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {exercise.words.slice(0, 5).map((word, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {word.word}
+                            </Badge>
+                          ))}
+                          {exercise.words.length > 5 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{exercise.words.length - 5} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button className="flex items-center gap-2">
+                      <Play className="w-4 h-4" />
+                      Start Exercise
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (!selectedExercise) return null;
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h2 className="text-4xl font-bold text-gray-800">తెలుగు డిక్టేషన్</h2>
-        <p className="text-xl text-gray-600">
-          Practice Telugu pronunciation with word-by-word dictation
-        </p>
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => setShowExerciseList(true)}>
+            ← Back to Exercises
+          </Button>
+          <h2 className="text-3xl font-bold text-gray-800">{selectedExercise.title}</h2>
+          <div className="w-24"></div> {/* Spacer for centering */}
+        </div>
+        <p className="text-xl text-gray-600">{selectedExercise.description}</p>
+        <div className="flex items-center justify-center gap-4">
+          <Badge className={getDifficultyColor(selectedExercise.difficulty)}>
+            {getDifficultyLabel(selectedExercise.difficulty)}
+          </Badge>
+          <Badge variant="outline">
+            {currentWordIndex + 1} of {selectedExercise.totalWords} words
+          </Badge>
+        </div>
       </div>
-
-      {/* Difficulty Selection */}
-      <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
-        <CardHeader>
-          <CardTitle className="text-purple-700">Select Difficulty Level</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Button
-              variant={selectedLength === 2 ? 'default' : 'outline'}
-              onClick={() => handleDifficultyChange(2)}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              సులభం (Easy) - 2 Letters
-            </Button>
-            <Button
-              variant={selectedLength === 3 ? 'default' : 'outline'}
-              onClick={() => handleDifficultyChange(3)}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white"
-            >
-              మధ్యస్థం (Medium) - 3 Letters
-            </Button>
-            <Button
-              variant={selectedLength === 4 ? 'default' : 'outline'}
-              onClick={() => handleDifficultyChange(4)}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
-            >
-              కష్టం (Hard) - 4 Letters
-            </Button>
-            <Button
-              variant={selectedLength === 5 ? 'default' : 'outline'}
-              onClick={() => handleDifficultyChange(5)}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              చాలా కష్టం (Very Hard) - 5 Letters
-            </Button>
-            <Button
-              variant={selectedLength === 6 ? 'default' : 'outline'}
-              onClick={() => handleDifficultyChange(6)}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              అత్యంత కష్టం (Expert) - 6 Letters
-            </Button>
-          </div>
-          <div className="mt-3 text-center text-sm text-gray-600">
-            {words.length} words available in {selectedLength}-letter difficulty level
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Main Practice Interface */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -541,18 +696,38 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
             <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-200">
               <div className="text-center mb-4">
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                  Word {currentWordIndex + 1} of {words.length}
+                  Word {currentWordIndex + 1} of {selectedExercise.totalWords}
                 </span>
               </div>
               <p className="text-sm font-medium text-gray-600 mb-2">Current word:</p>
               <p className="text-4xl font-bold text-orange-700 mb-4">{currentWord}</p>
+              
+              {/* Word details */}
+              {selectedExercise.words[currentWordIndex]?.meaning && (
+                <p className="text-sm text-gray-600 mb-2">
+                  Meaning: {selectedExercise.words[currentWordIndex].meaning}
+                </p>
+              )}
+              {selectedExercise.words[currentWordIndex]?.pronunciation && (
+                <p className="text-sm text-gray-600">
+                  Pronunciation: {selectedExercise.words[currentWordIndex].pronunciation}
+                </p>
+              )}
             </div>
-            
 
+            {/* Listen Button */}
+            <Button
+              onClick={() => speakWord(currentWord)}
+              className="flex items-center gap-2"
+              variant="outline"
+            >
+              <Volume2 className="w-4 h-4" />
+              Listen to Word
+            </Button>
           </CardContent>
         </Card>
 
-              {/* Pronunciation Practice */}
+        {/* Pronunciation Practice */}
         <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
@@ -639,7 +814,7 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
               <Button
                 variant="outline"
                 onClick={nextWord}
-                disabled={currentWordIndex >= words.length - 1}
+                disabled={currentWordIndex >= selectedExercise.totalWords - 1}
                 className="flex items-center gap-2"
               >
                 <ArrowRight className="w-4 h-4" />
@@ -647,11 +822,11 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
               </Button>
               <Button
                 variant="outline"
-                onClick={resetPractice}
+                onClick={resetExercise}
                 className="flex items-center gap-2"
               >
                 <RotateCcw className="w-4 h-4" />
-                Reset Practice
+                Reset Exercise
               </Button>
             </div>
             
@@ -728,8 +903,8 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
                 <div className="bg-white p-4 rounded-lg border">
                   <h4 className="font-semibold text-purple-700 mb-2">Current Session</h4>
                   <p className="text-sm text-gray-600">Score: {score.correct}/{score.total}</p>
-                  <p className="text-sm text-gray-600">Word: {currentWordIndex + 1}/{words.length}</p>
-                  <p className="text-sm text-gray-600">Length: {selectedLength} letters</p>
+                  <p className="text-sm text-gray-600">Word: {currentWordIndex + 1}/{selectedExercise.totalWords}</p>
+                  <p className="text-sm text-gray-600">Exercise: {selectedExercise.title}</p>
                 </div>
               </div>
             </div>
@@ -749,12 +924,12 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
         <CardContent className="space-y-3 text-sm text-gray-700">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="font-semibold text-purple-700 mb-2">Step 1: Select Word Length</p>
-              <p>Choose from 3, 4, 5, or 6 letter words using the tabs above</p>
+              <p className="font-semibold text-purple-700 mb-2">Step 1: Select Exercise</p>
+              <p>Choose from available dictation exercises created by trainers</p>
             </div>
             <div>
               <p className="font-semibold text-purple-700 mb-2">Step 2: Listen to the Word</p>
-              <p>Click "Listen Again" to hear the word pronounced clearly</p>
+              <p>Click "Listen to Word" to hear the word pronounced clearly</p>
             </div>
             <div>
               <p className="font-semibold text-purple-700 mb-2">Step 3: Start Practice</p>
