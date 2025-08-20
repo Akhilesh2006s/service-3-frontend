@@ -150,3 +150,6 @@ If you encounter any issues:
 ---
 
 **Your Telugu Bhasha Gyan application is now ready for production deployment! 🎉**
+
+
+

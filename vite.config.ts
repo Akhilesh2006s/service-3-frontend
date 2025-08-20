@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'https://service-3-backend-production.up.railway.app',
+        target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
       },

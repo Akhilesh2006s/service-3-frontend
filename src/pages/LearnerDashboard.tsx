@@ -44,6 +44,7 @@ import YouTubePlayer from "@/components/YouTubePlayer";
 import { isYouTubeUrl } from "@/utils/youtubeUtils";
 import TeluguReading from "@/components/TeluguReading";
 import TeluguDictation from "@/components/TeluguDictation";
+import CustomDictation from "@/components/CustomDictation";
 
 import TeluguSentenceFormation from "@/components/TeluguSentenceFormation";
 import TeluguSpelling from "@/components/TeluguSpelling";
@@ -1053,6 +1054,11 @@ const LearnerDashboard = () => {
                   <span className="hidden sm:inline">తెలుగు డిక్టేషన్</span>
                   <span className="sm:hidden">డిక్టేషన్</span>
                 </TabsTrigger>
+                <TabsTrigger key="custom-dictation" value="custom-dictation" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                  <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Custom Dictation</span>
+                  <span className="sm:hidden">Custom</span>
+                </TabsTrigger>
                 <TabsTrigger key="telugu-sentence-formation" value="telugu-sentence-formation" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
                   <Type className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">వాక్య నిర్మాణం</span>
@@ -1463,22 +1469,7 @@ const LearnerDashboard = () => {
                       </CardContent>
                     </Card>
 
-                    {/* Practice Section - Audio Recording for Milestones 1-8 */}
-                      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Mic className="w-5 h-5" />
-                            Practice Recording
-                          </CardTitle>
-                          <CardDescription>
-                            Record your pronunciation practice for Milestone {currentMilestone}. You can save up to 5 recordings per milestone.
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                        {/* Loading Status */}
 
-                        </CardContent>
-                      </Card>
 
                     {/* Milestone System */}
                     <MilestoneSystem 
@@ -1509,6 +1500,10 @@ const LearnerDashboard = () => {
 
               <TabsContent value="telugu-dictation" className="space-y-4">
                 <TeluguDictation currentMilestone={currentMilestone} />
+              </TabsContent>
+
+              <TabsContent value="custom-dictation" className="space-y-4">
+                <CustomDictation />
               </TabsContent>
 
 

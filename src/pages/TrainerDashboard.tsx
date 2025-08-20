@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Users, CheckCircle, XCircle, Play, Eye, LogOut, Upload, Video, FileText, Grid3X3, ClipboardCheck, BookOpen, Youtube, Type, Volume2, Clock, Target, Award } from "lucide-react";
+import { Plus, Users, CheckCircle, XCircle, Play, Eye, LogOut, Upload, Video, FileText, ClipboardCheck, BookOpen, Youtube, Type, Volume2, Clock, Target, Award } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +16,7 @@ import { isYouTubeUrl, getYouTubeVideoInfo } from "@/utils/youtubeUtils";
 import TeluguStoryManager from "@/components/TeluguStoryManager";
 import TeluguUnitManager from "@/components/TeluguUnitManager";
 import VoiceExaminationCreator from "@/components/VoiceExaminationCreator";
+import DictationExerciseManager from "@/components/DictationExerciseManager";
 
 
 
@@ -62,27 +63,7 @@ interface VideoLecture {
   embedUrl?: string;
 }
 
-interface GreenBox {
-  id: string;
-  row: number;
-  col: number;
-  explanation: string; // What shows when revealed as correct
-}
 
-interface PuzzleCell {
-  letter: string;
-  isGreenBox: boolean; // Set by trainer as correct answer
-  explanation: string; // Explanation for this green box
-}
-
-interface WordPuzzleConfig {
-  id: string;
-  milestone: number;
-  title: string;
-  grid: PuzzleCell[][];
-  greenBoxes: GreenBox[]; // All correct answers set by trainer
-  updatedAt: Date;
-}
 
 const TrainerDashboard = () => {
   // All hooks must be called at the top level, in the same order every time
@@ -95,17 +76,10 @@ const TrainerDashboard = () => {
   const [existingExams, setExistingExams] = useState<any[]>([]);
   const [videoLectures, setVideoLectures] = useState<VideoLecture[]>([]);
   const [isLoadingVideos, setIsLoadingVideos] = useState(false);
-  const [wordPuzzles, setWordPuzzles] = useState<WordPuzzleConfig[]>([]);
-  const [selectedPuzzleMilestone, setSelectedPuzzleMilestone] = useState<number>(9);
-  const [newGreenBox, setNewGreenBox] = useState({
-    row: 0,
-    col: 0,
-    explanation: ""
-  });
+
   const [voiceExaminations, setVoiceExaminations] = useState<any[]>([]);
   const [showVoiceExaminationCreator, setShowVoiceExaminationCreator] = useState(false);
-  const [editingCell, setEditingCell] = useState<{row: number, col: number} | null>(null);
-  const [newLetter, setNewLetter] = useState("");
+
   const [newQuestion, setNewQuestion] = useState({
     question: "",
     teluguQuestion: "",
@@ -413,270 +387,7 @@ const TrainerDashboard = () => {
     );
   }
 
-  // Default Telugu letters for puzzle grid
-  const defaultTeluguLetters = [
-    "అ", "ఆ", "ఇ", "ఈ", "ఉ", "ఊ", "ఋ", "ౠ", "ఎ", "ఏ",
-    "ఐ", "ఒ", "ఓ", "ఔ", "అం", "అః", "క", "ఖ", "గ", "ఘ",
-    "ఙ", "చ", "ఛ", "జ", "ఝ", "ఞ", "ట", "ఠ", "డ", "ఢ",
-    "ణ", "త", "థ", "ద", "ధ", "న", "ప", "ఫ", "బ", "భ",
-    "మ", "య", "ర", "ల", "వ", "శ", "ష", "స", "హ", "ళ",
-    "క్ష", "ఱ", "కా", "కి", "కీ", "కు", "కూ", "కృ", "కే", "కై",
-    "కొ", "కో", "కౌ", "కం", "కః", "గా", "గి", "గీ", "గు", "గూ",
-    "గృ", "గే", "గై", "గొ", "గో", "గౌ", "గం", "గః", "చా", "చి",
-    "చీ", "చు", "చూ", "చృ", "చే", "చై", "చొ", "చో", "చౌ", "చం",
-    "చః", "తా", "తి", "తీ", "తు", "తూ", "తృ", "తే", "తై", "తొ"
-  ];
 
-  // Create default puzzle with green boxes
-  const createDefaultPuzzle = (milestone: number): WordPuzzleConfig => {
-    // Default green boxes for each milestone (adjusted for 6x6 grid)
-    const defaultGreenBoxes: GreenBox[] = [
-      {
-        id: "green-1",
-        row: 1,
-        col: 2,
-        explanation: "అ - First vowel in Telugu alphabet"
-      },
-      {
-        id: "green-2",
-        row: 2,
-        col: 4,
-        explanation: "క - First consonant in Telugu alphabet"
-      },
-      {
-        id: "green-3",
-        row: 3,
-        col: 1,
-        explanation: "మ - Important consonant sound"
-      },
-      {
-        id: "green-4",
-        row: 4,
-        col: 3,
-        explanation: "ర - Rolling R sound"
-      }
-    ];
-
-          // Initialize grid with Telugu letters
-      const grid: PuzzleCell[][] = [];
-      let letterIndex = 0;
-      
-      for (let row = 0; row < 6; row++) {
-        grid[row] = [];
-        for (let col = 0; col < 6; col++) {
-          const isGreenBox = defaultGreenBoxes.some(gb => gb.row === row && gb.col === col);
-          const greenBox = defaultGreenBoxes.find(gb => gb.row === row && gb.col === col);
-          
-          grid[row][col] = {
-            letter: defaultTeluguLetters[letterIndex % defaultTeluguLetters.length],
-            isGreenBox: isGreenBox,
-            explanation: greenBox ? greenBox.explanation : ""
-          };
-          letterIndex++;
-        }
-      }
-
-    return {
-      id: `puzzle-${milestone}`,
-      milestone,
-      title: getMilestoneTitle(milestone),
-      grid,
-      greenBoxes: defaultGreenBoxes,
-      updatedAt: new Date()
-    };
-  };
-
-  // Get current puzzle for selected milestone
-  const getCurrentPuzzle = (): WordPuzzleConfig => {
-    const existing = wordPuzzles.find(p => p.milestone === selectedPuzzleMilestone);
-    if (existing) return existing;
-    
-    const defaultPuzzle = createDefaultPuzzle(selectedPuzzleMilestone);
-    setWordPuzzles(prev => [...prev, defaultPuzzle]);
-    return defaultPuzzle;
-  };
-
-  // Add green box to puzzle
-  const addGreenBox = () => {
-    if (!newGreenBox.explanation.trim()) {
-      toast({
-        title: "Missing Explanation",
-        description: "Please provide an explanation for this green box.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (newGreenBox.row < 0 || newGreenBox.row >= 6 || newGreenBox.col < 0 || newGreenBox.col >= 6) {
-      toast({
-        title: "Invalid Position",
-        description: "Row and column must be between 0 and 5.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const currentPuzzle = getCurrentPuzzle();
-    
-    // Check if green box already exists at this position
-    const existingGreenBox = currentPuzzle.greenBoxes.find(gb => gb.row === newGreenBox.row && gb.col === newGreenBox.col);
-    if (existingGreenBox) {
-      toast({
-        title: "Green Box Exists",
-        description: "A green box already exists at this position.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newGreenBoxObj: GreenBox = {
-      id: `green-${Date.now()}`,
-      row: newGreenBox.row,
-      col: newGreenBox.col,
-      explanation: newGreenBox.explanation
-    };
-
-    // Update grid
-    const newGrid = currentPuzzle.grid.map((row, rowIndex) =>
-      row.map((cell, colIndex) => {
-        if (rowIndex === newGreenBox.row && colIndex === newGreenBox.col) {
-          return {
-            ...cell,
-            isGreenBox: true,
-            explanation: newGreenBox.explanation
-          };
-        }
-        return cell;
-      })
-    );
-
-    const updatedPuzzle = {
-      ...currentPuzzle,
-      grid: newGrid,
-      greenBoxes: [...currentPuzzle.greenBoxes, newGreenBoxObj],
-      updatedAt: new Date()
-    };
-
-    setWordPuzzles(prev =>
-      prev.map(p => p.milestone === selectedPuzzleMilestone ? updatedPuzzle : p)
-    );
-
-    // Save to localStorage AND sync to all milestones
-    saveAndSyncPuzzle(updatedPuzzle);
-
-    // Reset form
-    setNewGreenBox({
-      row: 0,
-      col: 0,
-      explanation: ""
-    });
-
-    toast({
-      title: "Green Box Added",
-      description: `Green box added at (${newGreenBox.row},${newGreenBox.col}) and synced to all milestones.`
-    });
-  };
-
-  // Remove green box from puzzle
-  const removeGreenBox = (greenBoxId: string) => {
-    const currentPuzzle = getCurrentPuzzle();
-    const greenBoxToRemove = currentPuzzle.greenBoxes.find(gb => gb.id === greenBoxId);
-    if (!greenBoxToRemove) return;
-
-    // Update grid
-    const newGrid = currentPuzzle.grid.map((row, rowIndex) =>
-      row.map((cell, colIndex) => {
-        if (rowIndex === greenBoxToRemove.row && colIndex === greenBoxToRemove.col) {
-          return {
-            ...cell,
-            isGreenBox: false,
-            explanation: ""
-          };
-        }
-        return cell;
-      })
-    );
-
-    const updatedPuzzle = {
-      ...currentPuzzle,
-      grid: newGrid,
-      greenBoxes: currentPuzzle.greenBoxes.filter(gb => gb.id !== greenBoxId),
-      updatedAt: new Date()
-    };
-
-    setWordPuzzles(prev =>
-      prev.map(p => p.milestone === selectedPuzzleMilestone ? updatedPuzzle : p)
-    );
-
-    // Save to localStorage AND sync to all milestones
-    saveAndSyncPuzzle(updatedPuzzle);
-
-    toast({
-      title: "Green Box Removed",
-      description: `Green box at (${greenBoxToRemove.row},${greenBoxToRemove.col}) removed from all milestones.`
-    });
-  };
-
-  // Update letter in a specific cell
-  const updateCellLetter = (row: number, col: number, newLetter: string) => {
-    if (!newLetter.trim()) {
-      toast({
-        title: "Invalid Letter",
-        description: "Please enter a valid Telugu letter.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const currentPuzzle = getCurrentPuzzle();
-    
-    // Update grid
-    const newGrid = currentPuzzle.grid.map((gridRow, rowIndex) =>
-      gridRow.map((cell, colIndex) => {
-        if (rowIndex === row && colIndex === col) {
-          return {
-            ...cell,
-            letter: newLetter
-          };
-        }
-        return cell;
-      })
-    );
-
-    const updatedPuzzle = {
-      ...currentPuzzle,
-      grid: newGrid,
-      updatedAt: new Date()
-    };
-
-    setWordPuzzles(prev =>
-      prev.map(p => p.milestone === selectedPuzzleMilestone ? updatedPuzzle : p)
-    );
-
-    // Save and sync to all milestones
-    saveAndSyncPuzzle(updatedPuzzle);
-
-    // Clear editing state
-    setEditingCell(null);
-    setNewLetter("");
-
-    toast({
-      title: "Letter Updated",
-      description: `Cell (${row},${col}) updated to "${newLetter}" and synced to all milestones.`
-    });
-  };
-
-  // Save puzzle to current milestone only
-  const saveAndSyncPuzzle = (updatedPuzzle: WordPuzzleConfig) => {
-    // Save only to current milestone
-    localStorage.setItem(`puzzle-${selectedPuzzleMilestone}`, JSON.stringify(updatedPuzzle));
-
-    toast({
-      title: `Milestone ${selectedPuzzleMilestone} Updated`,
-      description: `Configuration updated for milestone ${selectedPuzzleMilestone} only.`,
-      duration: 3000
-    });
-  };
 
 
 
@@ -778,7 +489,7 @@ const TrainerDashboard = () => {
     }
 
     try {
-      console.log('Creating exam with data:', { examQuestions, examDetails, selectedPuzzleMilestone });
+      console.log('Creating exam with data:', { examQuestions, examDetails });
       
       // Convert frontend questions to backend format
       const mcqQuestions = examQuestions.map(q => ({
@@ -1278,10 +989,7 @@ const TrainerDashboard = () => {
             <FileText className="w-4 h-4" />
             Create Exam
           </TabsTrigger>
-          <TabsTrigger value="word-puzzles" className="flex items-center gap-2">
-            <Grid3X3 className="w-4 h-4" />
-            Word Puzzles
-          </TabsTrigger>
+
                   <TabsTrigger value="telugu-stories" className="flex items-center gap-2">
           <Type className="w-4 h-4" />
           Telugu Stories
@@ -1290,10 +998,14 @@ const TrainerDashboard = () => {
           <FileText className="w-4 h-4" />
           Telugu Units
         </TabsTrigger>
-        <TabsTrigger value="voice-examinations" className="flex items-center gap-2">
-          <Volume2 className="w-4 h-4" />
-          Voice Examinations
-        </TabsTrigger>
+                  <TabsTrigger value="voice-examinations" className="flex items-center gap-2">
+            <Volume2 className="w-4 h-4" />
+            Voice Examinations
+          </TabsTrigger>
+          <TabsTrigger value="dictation-exercises" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Dictation Exercises
+          </TabsTrigger>
           <TabsTrigger value="students" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Students
@@ -1941,359 +1653,7 @@ const TrainerDashboard = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="word-puzzles" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Grid3X3 className="w-5 h-5" />
-                Manage Word Puzzles (Milestones 9-19)
-              </CardTitle>
-              <CardDescription>
-                Create and customize Telugu letter puzzles for vocabulary and advanced pronunciation lessons
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Milestone Selector */}
-              <div className="flex items-center gap-4">
-                <Label htmlFor="puzzle-milestone">Select Milestone:</Label>
-                <Select 
-                  value={selectedPuzzleMilestone.toString()} 
-                  onValueChange={(value) => setSelectedPuzzleMilestone(parseInt(value))}
-                >
-                  <SelectTrigger className="w-60">
-                    <SelectValue placeholder="Select milestone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 11 }, (_, i) => i + 9).map((milestone) => (
-                      <SelectItem key={milestone} value={milestone.toString()}>
-                        Milestone {milestone}: {getMilestoneTitle(milestone)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
-              {/* Current Puzzle Info */}
-              {(() => {
-                const currentPuzzle = getCurrentPuzzle();
-                return (
-                  <div className="border rounded-lg p-4 bg-blue-50">
-                    <h4 className="font-medium text-blue-900 mb-2">Current Puzzle: {currentPuzzle.title}</h4>
-                    <p className="text-sm text-blue-700">
-                      Last updated: {currentPuzzle.updatedAt.toLocaleString()}
-                    </p>
-                    <p className="text-sm text-blue-700 mt-1">
-                      Green boxes: {currentPuzzle.greenBoxes.length}
-                    </p>
-                  </div>
-                );
-              })()}
-
-              {/* Add New Green Box Form */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add Green Box to Puzzle</CardTitle>
-                  <CardDescription>
-                    Add green boxes that students must find. Changes apply to current milestone only.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="row">Row (0-9)</Label>
-                      <Input
-                        id="row"
-                        type="number"
-                        min="0"
-                        max="9"
-                        value={newGreenBox.row}
-                        onChange={(e) => setNewGreenBox(prev => ({ ...prev, row: parseInt(e.target.value) || 0 }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="col">Column (0-9)</Label>
-                      <Input
-                        id="col"
-                        type="number"
-                        min="0"
-                        max="9"
-                        value={newGreenBox.col}
-                        onChange={(e) => setNewGreenBox(prev => ({ ...prev, col: parseInt(e.target.value) || 0 }))}
-                      />
-                    </div>
-                    <div className="flex items-end gap-2">
-                      <Button onClick={addGreenBox} className="flex-1">
-                        Add Green Box
-                      </Button>
-                      <Button 
-                        onClick={() => {
-                          const currentPuzzle = getCurrentPuzzle();
-                          saveAndSyncPuzzle(currentPuzzle);
-                        }}
-                        variant="outline"
-                        className="flex-1"
-                      >
-                        Update Milestone {selectedPuzzleMilestone}
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="explanation">Explanation (What students see when they find this green box)</Label>
-                    <Input
-                      id="explanation"
-                      placeholder="e.g., అ - First vowel in Telugu alphabet"
-                      value={newGreenBox.explanation}
-                      onChange={(e) => setNewGreenBox(prev => ({ ...prev, explanation: e.target.value }))}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Puzzle Grid Display */}
-              <div className="space-y-4">
-                <h4 className="font-medium">Green Box Grid Preview</h4>
-                <div className="border-2 border-gray-300 p-4 bg-white rounded-lg">
-                  <div className="grid grid-cols-6 gap-1">
-                    {getCurrentPuzzle().grid.map((row, rowIndex) =>
-                      row.map((cell, colIndex) => {
-                        const isEditing = editingCell?.row === rowIndex && editingCell?.col === colIndex;
-                        
-                        return (
-                          <div
-                            key={`${rowIndex}-${colIndex}`}
-                            className={`
-                              relative w-12 h-12 border border-gray-200 flex items-center justify-center text-sm font-bold
-                              transition-all duration-200 cursor-pointer hover:shadow-md
-                              ${cell.isGreenBox 
-                                ? 'bg-green-100 border-green-400 text-green-800' 
-                                : 'bg-gray-50'
-                              }
-                              ${isEditing ? 'ring-2 ring-blue-500' : ''}
-                            `}
-                            title={
-                              cell.isGreenBox 
-                                ? `Green Box: ${cell.explanation}\nClick: Toggle green box\nDouble-click: Edit letter` 
-                                : `Cell (${rowIndex},${colIndex}): ${cell.letter}\nClick: Toggle green box\nDouble-click: Edit letter`
-                            }
-                            onClick={() => {
-                              // Toggle green box on single click
-                              if (cell.isGreenBox) {
-                                const greenBox = getCurrentPuzzle().greenBoxes.find(gb => gb.row === rowIndex && gb.col === colIndex);
-                                if (greenBox) removeGreenBox(greenBox.id);
-                              } else {
-                                setNewGreenBox({
-                                  row: rowIndex,
-                                  col: colIndex,
-                                  explanation: `${cell.letter} - Click to add explanation`
-                                });
-                              }
-                            }}
-                            onDoubleClick={() => {
-                              // Edit letter on double click
-                              setEditingCell({ row: rowIndex, col: colIndex });
-                              setNewLetter(cell.letter);
-                            }}
-                          >
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                value={newLetter}
-                                onChange={(e) => setNewLetter(e.target.value)}
-                                onBlur={() => {
-                                  if (newLetter.trim() && newLetter !== cell.letter) {
-                                    updateCellLetter(rowIndex, colIndex, newLetter.trim());
-                                  } else {
-                                    setEditingCell(null);
-                                    setNewLetter("");
-                                  }
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    if (newLetter.trim() && newLetter !== cell.letter) {
-                                      updateCellLetter(rowIndex, colIndex, newLetter.trim());
-                                    } else {
-                                      setEditingCell(null);
-                                      setNewLetter("");
-                                    }
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCell(null);
-                                    setNewLetter("");
-                                  }
-                                }}
-                                className="w-10 h-10 text-center text-sm font-bold border-0 bg-transparent focus:outline-none"
-                                autoFocus
-                                maxLength={2}
-                              />
-                            ) : (
-                              cell.letter
-                            )}
-                            {cell.isGreenBox && !isEditing && (
-                              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white"></div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-                
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p><strong>How to edit:</strong></p>
-                  <p>• <span className="text-blue-600">Single click</span> any cell to toggle it as a green box</p>
-                  <p>• <span className="text-purple-600">Double click</span> any cell to edit the Telugu letter</p>
-                  <p>• <span className="text-green-600">Green cells</span> are the correct answers students must find</p>
-                  <p>• Press <kbd className="px-1 py-0.5 bg-gray-200 rounded text-xs">Enter</kbd> to save letter changes, <kbd className="px-1 py-0.5 bg-gray-200 rounded text-xs">Escape</kbd> to cancel</p>
-                  <p>• Changes apply to current milestone only</p>
-                  <p>• Students will see this as an exam when they reach milestones 9-19</p>
-                </div>
-              </div>
-
-              {/* Current Green Boxes List */}
-              {getCurrentPuzzle().greenBoxes.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Green Boxes in Current Puzzle</CardTitle>
-                    <CardDescription>
-                      Manage the green boxes that students must find. Changes apply to current milestone only.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {getCurrentPuzzle().greenBoxes.map((greenBox, index) => (
-                        <div key={greenBox.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <Badge variant="default" className="bg-green-600">
-                                📍 ({greenBox.row},{greenBox.col})
-                              </Badge>
-                              <div>
-                                <div className="font-medium text-lg">
-                                  {getCurrentPuzzle().grid[greenBox.row][greenBox.col].letter}
-                                </div>
-                                <div className="text-sm text-muted-foreground">{greenBox.explanation}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  Students see this explanation when they find this green box
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeGreenBox(greenBox.id)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Quick Actions */}
-              <div className="flex gap-3">
-                <Button 
-                  onClick={() => {
-                    const currentPuzzle = getCurrentPuzzle();
-                    saveAndSyncPuzzle(currentPuzzle);
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Update Milestone {selectedPuzzleMilestone}
-                </Button>
-                
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    if (confirm('Reset puzzle to default green boxes? This will overwrite all changes for the current milestone only.')) {
-                      const defaultPuzzle = createDefaultPuzzle(selectedPuzzleMilestone);
-                      setWordPuzzles(prev =>
-                        prev.map(p => p.milestone === selectedPuzzleMilestone ? defaultPuzzle : p)
-                      );
-                      // Save to current milestone only
-                      saveAndSyncPuzzle(defaultPuzzle);
-                      toast({
-                        title: "Puzzle Reset",
-                        description: "Puzzle has been reset to default green boxes for the current milestone."
-                      });
-                    }
-                  }}
-                >
-                  Reset to Default Green Boxes
-                </Button>
-                
-                <Button 
-                  onClick={() => {
-                    const currentPuzzle = getCurrentPuzzle();
-                    if (currentPuzzle.greenBoxes.length === 0) {
-                      toast({
-                        title: "No Green Boxes",
-                        description: "Add some green boxes to the puzzle first.",
-                        variant: "destructive"
-                      });
-                      return;
-                    }
-
-                    const configToSave = JSON.stringify(currentPuzzle, null, 2);
-                    navigator.clipboard.writeText(configToSave).then(() => {
-                      toast({
-                        title: "Configuration Copied",
-                        description: "Green box configuration copied to clipboard."
-                      });
-                    });
-                  }}
-                >
-                  Copy Green Box Configuration
-                </Button>
-
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    const currentPuzzle = getCurrentPuzzle();
-                    // Randomize all letters but keep green box positions
-                    const newGrid = currentPuzzle.grid.map(row =>
-                      row.map(cell => ({
-                        ...cell,
-                        letter: defaultTeluguLetters[Math.floor(Math.random() * defaultTeluguLetters.length)]
-                      }))
-                    );
-
-                    const updatedPuzzle = {
-                      ...currentPuzzle,
-                      grid: newGrid,
-                      updatedAt: new Date()
-                    };
-
-                    setWordPuzzles(prev =>
-                      prev.map(p => p.milestone === selectedPuzzleMilestone ? updatedPuzzle : p)
-                    );
-
-                    saveAndSyncPuzzle(updatedPuzzle);
-
-                    toast({
-                      title: "Letters Randomized",
-                      description: "All letters have been randomized while keeping green box positions."
-                    });
-                  }}
-                >
-                  🎲 Randomize All Letters
-                </Button>
-
-                <Button 
-                  onClick={() => {
-                    const currentPuzzle = getCurrentPuzzle();
-                    saveAndSyncPuzzle(currentPuzzle);
-                  }}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Sync to All Milestones (9-19)
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
               <TabsContent value="telugu-stories" className="space-y-4">
         <TeluguStoryManager currentMilestone={1} />
@@ -2473,6 +1833,10 @@ const TrainerDashboard = () => {
         )}
       </TabsContent>
 
+      <TabsContent value="dictation-exercises" className="space-y-4">
+        <DictationExerciseManager />
+      </TabsContent>
+
         <TabsContent value="students" className="space-y-4">
           {/* Authentication Error Alert */}
           {!apiService.isAuthenticated() && (
@@ -2486,12 +1850,12 @@ const TrainerDashboard = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-red-800">Authentication Required</h3>
-                    <p className="text-sm text-red-700">You need to be authenticated to manage students. Click "Restore Auth" in the header or re-login.</p>
+                    <p className="text-sm text-red-700">You need to be authenticated to manage students. Please re-login.</p>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={restoreAuth}
+                    disabled
                     className="border-red-200 text-red-700 hover:bg-red-100"
                   >
                     Disabled
@@ -2512,86 +1876,7 @@ const TrainerDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Exam Statistics Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">{existingExams.length}</div>
-                  <div className="text-sm text-orange-700">Total Exams Created</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">
-                    {existingExams.filter(exam => exam.isPublished).length}
-                  </div>
-                  <div className="text-sm text-orange-700">Published Exams</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">
-                    {existingExams.filter(exam => exam.milestone >= 9 && exam.milestone <= 19).length}
-                  </div>
-                  <div className="text-sm text-orange-700">Student-Accessible</div>
-                </div>
-              </div>
-
-              {/* Debug Info and Refresh Button */}
-              <div className="mb-4 p-3 bg-gray-100 rounded-lg border">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    <span className="font-medium">Debug Info:</span> 
-                    existingExams.length = {existingExams.length} | 
-                    API Status: {apiService.isAuthenticated() ? '✅ Authenticated' : '❌ Not Authenticated'}
-                  </div>
-                  <Button 
-                    onClick={loadExams} 
-                    variant="outline" 
-                    size="sm"
-                    className="text-xs"
-                  >
-                    🔄 Refresh Exams
-                  </Button>
-                </div>
-                {existingExams.length > 0 && (
-                  <div className="mt-2 text-xs text-gray-500">
-                    <span className="font-medium">Exams Data:</span> {JSON.stringify(existingExams.map(e => ({ id: e._id, title: e.title, milestone: e.milestone, published: e.isPublished })))}
-                  </div>
-                )}
-              </div>
-
-              {/* Available Exams by Milestone */}
-              {existingExams.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="font-semibold mb-3 text-gray-800">Available Exams by Milestone</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {Array.from({ length: 19 }, (_, i) => i + 1).map(milestone => {
-                      const milestoneExams = existingExams.filter(exam => exam.milestone === milestone);
-                      if (milestoneExams.length === 0) return null;
-                      
-                      return (
-                        <div key={milestone} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium text-blue-800">Milestone {milestone}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {milestoneExams.length} {milestoneExams.length === 1 ? 'Exam' : 'Exams'}
-                            </Badge>
-                          </div>
-                          <div className="space-y-1">
-                            {milestoneExams.map(exam => (
-                              <div key={exam._id} className="text-sm">
-                                <span className="font-medium">{exam.title}</span>
-                                <div className="flex items-center gap-2 text-xs text-gray-600">
-                                  <Badge variant={exam.isPublished ? "default" : "secondary"} className="text-xs">
-                                    {exam.isPublished ? "Published" : "Draft"}
-                                  </Badge>
-                                  <span>{(exam.mcqQuestions?.length || 0) + (exam.descriptiveQuestions?.length || 0) + (exam.voiceQuestions?.length || 0)} Q</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              
             </CardContent>
           </Card>
 
@@ -2710,38 +1995,7 @@ const TrainerDashboard = () => {
                                 Added on {new Date(student.createdAt).toLocaleDateString()}
                               </p>
                               
-                              {/* Assigned Exams Section */}
-                              <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                                <h5 className="text-sm font-medium text-gray-700 mb-2">Assigned Exams Section</h5>
-                                <div className="space-y-2">
-                                  {existingExams
-                                    .filter(exam => exam.milestone >= 9 && exam.milestone <= 19)
-                                    .map(exam => (
-                                      <div key={exam._id} className="flex items-center justify-between p-2 bg-white rounded border">
-                                        <div className="flex-1">
-                                          <div className="flex items-center gap-2">
-                                            <span className="font-medium text-sm">{exam.title}</span>
-                                            <Badge variant="outline" className="text-xs">
-                                              Milestone {exam.milestone}
-                                            </Badge>
-                                          </div>
-                                          <div className="text-xs text-gray-600">
-                                            <span>{(exam.mcqQuestions?.length || 0) + (exam.descriptiveQuestions?.length || 0) + (exam.voiceQuestions?.length || 0)} Questions</span>
-                                            <span className="mx-2">•</span>
-                                            <span>{exam.timeLimit} min</span>
-                                            <span className="mx-2">•</span>
-                                            <span>Pass: {exam.passingScore}%</span>
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <Badge variant={exam.isPublished ? "default" : "secondary"} className="text-xs">
-                                            {exam.isPublished ? "Published" : "Draft"}
-                                          </Badge>
-                                        </div>
-                                      </div>
-                                    ))}
-                                </div>
-                              </div>
+
                             </div>
                             <div className="flex gap-2">
                               <Button
@@ -2784,12 +2038,12 @@ const TrainerDashboard = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-red-800">Authentication Required</h3>
-                    <p className="text-sm text-red-700">You need to be authenticated to manage evaluators. Click "Restore Auth" in the header or re-login.</p>
+                    <p className="text-sm text-red-700">You need to be authenticated to manage evaluators. Please re-login.</p>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={restoreAuth}
+                    disabled
                     className="border-red-200 text-red-700 hover:bg-red-100"
                   >
                     Disabled
