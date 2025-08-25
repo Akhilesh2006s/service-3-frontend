@@ -472,11 +472,9 @@ export default function TeluguSpelling() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4">
-                         <div className="text-center space-y-2">
-               <p className="text-xs sm:text-sm text-gray-600">English word:</p>
-               <p className="text-xl sm:text-2xl font-bold text-blue-800">{currentExercise.englishWord}</p>
-               <p className="text-xs sm:text-sm text-gray-500">Listen to the Telugu pronunciation</p>
-             </div>
+                                     <div className="text-center space-y-2">
+              <p className="text-xs sm:text-sm text-gray-500">Listen to the Telugu pronunciation</p>
+            </div>
             
             {/* Audio Button */}
             <div className="text-center space-y-2">
@@ -493,26 +491,36 @@ export default function TeluguSpelling() {
 
             </div>
             
-            {/* Formed Word */}
+            {/* Your Spelling Display - Always Visible */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-200">
               <p className="text-sm text-gray-600 mb-2">Your spelling:</p>
-              <div className="min-h-[60px] p-4 border-2 border-dashed border-gray-300 rounded-lg">
+              <div className="min-h-[60px] p-4 border-2 border-dashed border-gray-300 rounded-lg bg-blue-50">
                 {selectedLetters.length === 0 ? (
                   <p className="text-gray-400 text-center">Click letters below to spell the word</p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedLetters.map((letterIndex, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deselectLetter(letterIndex)}
-                        className="text-lg"
-                        disabled={isCorrect !== null}
-                      >
-                        {currentExercise.letters[letterIndex]}
-                      </Button>
-                    ))}
+                  <div className="space-y-3">
+                    {/* Individual Letter Buttons */}
+                    <div className="flex flex-wrap gap-2">
+                      {selectedLetters.map((letterIndex, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deselectLetter(letterIndex)}
+                          className="text-lg"
+                          disabled={isCorrect !== null}
+                        >
+                          {currentExercise.letters[letterIndex]}
+                        </Button>
+                      ))}
+                    </div>
+                    {/* Combined Word Display */}
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600">Combined word:</p>
+                      <p className="text-2xl font-bold text-blue-700">
+                        {selectedLetters.map(index => currentExercise.letters[index]).join('')}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -528,24 +536,13 @@ export default function TeluguSpelling() {
                 </Button>
               </div>
               
-                             {showAnswer && (
-                 <div className="mt-4 space-y-3">
-                   {/* User's Input */}
-                   <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                     <p className="text-sm font-medium text-blue-800 mb-2">Your spelling:</p>
-                     <p className="text-lg font-bold text-blue-700">
-                       {selectedLetters.length > 0 
-                         ? selectedLetters.map(index => currentExercise.letters[index]).join('')
-                         : 'No letters selected yet'
-                       }
-                     </p>
-                   </div>
-                   
-                   {/* Correct Answer */}
-                   <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                     <p className="text-sm font-medium text-yellow-800 mb-2">Correct spelling:</p>
-                     <p className="text-lg font-bold text-yellow-700">{currentExercise.teluguWord}</p>
-                   </div>
+                                           {showAnswer && (
+                <div className="mt-4 space-y-3">
+                  {/* Correct Answer */}
+                  <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p className="text-sm font-medium text-yellow-800 mb-2">Correct spelling:</p>
+                    <p className="text-lg font-bold text-yellow-700">{currentExercise.teluguWord}</p>
+                  </div>
                    
                    {/* Comparison */}
                    {selectedLetters.length > 0 && (
