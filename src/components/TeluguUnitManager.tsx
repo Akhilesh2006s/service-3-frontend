@@ -111,7 +111,7 @@ const TeluguUnitManager = ({ currentMilestone, isStudentView = false }: TeluguUn
   const fetchUnits = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/telugu-units`, {
+      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/telugu-units`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
         }
@@ -176,8 +176,8 @@ const TeluguUnitManager = ({ currentMilestone, isStudentView = false }: TeluguUn
 
     try {
       const url = editingUnit 
-        ? `http://localhost:5000/api/telugu-units/${editingUnit._id}`
-        : 'http://localhost:5000/api/telugu-units';
+        ? `https://service-3-backend-production.up.railway.app/api/telugu-units/${editingUnit._id}`
+        : 'https://service-3-backend-production.up.railway.app/api/telugu-units';
       
       const method = editingUnit ? 'PUT' : 'POST';
       
@@ -223,7 +223,7 @@ const TeluguUnitManager = ({ currentMilestone, isStudentView = false }: TeluguUn
     if (!confirm('Are you sure you want to delete this unit?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/telugu-units/${unitId}`, {
+      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/telugu-units/${unitId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`

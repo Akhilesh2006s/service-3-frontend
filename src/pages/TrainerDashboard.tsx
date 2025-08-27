@@ -198,7 +198,7 @@ const TrainerDashboard = () => {
 
   const fetchVoiceExaminations = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/voice-examinations/trainer', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/voice-examinations/trainer', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
           'Content-Type': 'application/json'
@@ -236,7 +236,7 @@ const TrainerDashboard = () => {
     try {
       setIsLoadingVideos(true);
       console.log('Loading video lectures...');
-      const response = await fetch('http://localhost:5000/api/video-lectures', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/video-lectures', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
           'Content-Type': 'application/json'
@@ -616,7 +616,7 @@ const TrainerDashboard = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/video-lectures', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/video-lectures', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -686,7 +686,7 @@ const TrainerDashboard = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/video-lectures/${id}/publish`, {
+      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/video-lectures/${id}/publish`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -1788,7 +1788,7 @@ const TrainerDashboard = () => {
                             <Button
                               onClick={async () => {
                                 try {
-                                  const response = await fetch(`http://localhost:5000/api/voice-examinations/trainer/${examination._id}/publish`, {
+                                  const response = await fetch(`https://service-3-backend-production.up.railway.app/api/voice-examinations/trainer/${examination._id}/publish`, {
                                     method: 'PATCH',
                                     headers: {
                                       'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,

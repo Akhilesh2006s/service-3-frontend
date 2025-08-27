@@ -88,7 +88,7 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
   const loadExercises = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:5000/api/dictation-exercises', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/dictation-exercises', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
           'Content-Type': 'application/json'
@@ -136,7 +136,7 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
     
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:5000/api/learning-progress', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/learning-progress', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
         }
@@ -167,7 +167,7 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
     if (!user) return;
     
     try {
-      const response = await fetch('http://localhost:5000/api/learning-progress/dictation', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/learning-progress/dictation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -196,7 +196,7 @@ const TeluguDictation = ({ currentMilestone = 1 }: TeluguDictationProps) => {
     
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:5000/api/learning-progress/analytics', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/learning-progress/analytics', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
         }

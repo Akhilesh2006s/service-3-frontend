@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://service-3-backend-production.up.railway.app/api';
 
 class APIService {
   private getAuthHeaders(): HeadersInit {

@@ -223,7 +223,7 @@ const DescriptiveResultsView: React.FC<DescriptiveResultsViewProps> = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(`http://localhost:5000${answer.pdfUrl}`, '_blank')}
+                      onClick={() => window.open(`https://service-3-backend-production.up.railway.app${answer.pdfUrl}`, '_blank')}
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       View
@@ -233,7 +233,7 @@ const DescriptiveResultsView: React.FC<DescriptiveResultsViewProps> = ({
                       size="sm"
                       onClick={() => {
                         const link = document.createElement('a');
-                        link.href = `http://localhost:5000${answer.pdfUrl}`;
+                        link.href = `https://service-3-backend-production.up.railway.app${answer.pdfUrl}`;
                         link.download = answer.fileName;
                         link.click();
                       }}

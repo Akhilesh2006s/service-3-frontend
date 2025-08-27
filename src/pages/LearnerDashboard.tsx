@@ -187,7 +187,7 @@ const LearnerDashboard = () => {
       const token = localStorage.getItem('telugu-basics-token');
       console.log('🔍 Token available:', !!token);
       
-      const response = await fetch('http://localhost:5000/api/voice-examinations/student', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/voice-examinations/student', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -221,7 +221,7 @@ const LearnerDashboard = () => {
       console.log('LearnerDashboard - Fetching exams...');
       
       // Fetch exams
-              const examResponse = await fetch('http://localhost:5000/api/exams/student', {
+              const examResponse = await fetch('https://service-3-backend-production.up.railway.app/api/exams/student', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
           'Content-Type': 'application/json'
@@ -239,7 +239,7 @@ const LearnerDashboard = () => {
           
           // Also fetch submissions to get scores
           console.log('LearnerDashboard - Fetching submissions for scores...');
-          const submissionResponse = await fetch('http://localhost:5000/api/submissions/student', {
+          const submissionResponse = await fetch('https://service-3-backend-production.up.railway.app/api/submissions/student', {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
               'Content-Type': 'application/json'
@@ -325,7 +325,7 @@ const LearnerDashboard = () => {
       console.log('LearnerDashboard - User role:', user?.role);
       console.log('LearnerDashboard - Token:', localStorage.getItem('telugu-basics-token'));
       
-      const response = await fetch('http://localhost:5000/api/submissions/student', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/submissions/student', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
           'Content-Type': 'application/json'
@@ -382,7 +382,7 @@ const LearnerDashboard = () => {
   const fetchVideoLectures = async () => {
     try {
       console.log('🎬 LearnerDashboard - Fetching video lectures...');
-      const response = await fetch('http://localhost:5000/api/video-lectures/student', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/video-lectures/student', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
           'Content-Type': 'application/json'
@@ -481,7 +481,7 @@ const LearnerDashboard = () => {
     // For descriptive exams, start the timer when student clicks start
     if (exam.type === 'descriptive') {
       try {
-        const response = await fetch(`http://localhost:5000/api/exam-attempts/start/${exam.id}`, {
+        const response = await fetch(`https://service-3-backend-production.up.railway.app/api/exam-attempts/start/${exam.id}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -571,7 +571,7 @@ const LearnerDashboard = () => {
         
         console.log('LearnerDashboard - Submitting exam data:', submissionData);
         
-        const submissionResponse = await fetch('http://localhost:5000/api/submissions', {
+        const submissionResponse = await fetch('https://service-3-backend-production.up.railway.app/api/submissions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -675,7 +675,7 @@ const LearnerDashboard = () => {
         
         console.log('LearnerDashboard - Submitting descriptive exam data:', submissionData);
         
-        const submissionResponse = await fetch('http://localhost:5000/api/submissions', {
+        const submissionResponse = await fetch('https://service-3-backend-production.up.railway.app/api/submissions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -1374,7 +1374,7 @@ const LearnerDashboard = () => {
                                     }}
                                   >
                                     <source src={currentVideo} type="video/mp4" />
-                                    <source src={`http://localhost:5000${currentVideo}`} type="video/mp4" />
+                                    <source src={`https://service-3-backend-production.up.railway.app${currentVideo}`} type="video/mp4" />
                                     Your browser does not support the video tag.
                                   </video>
                                 </div>

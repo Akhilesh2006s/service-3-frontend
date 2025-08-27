@@ -144,7 +144,7 @@ const EvaluatorDashboard = () => {
       setLoading(true);
       console.log('🔄 Fetching submissions...');
       
-      const response = await fetch('http://localhost:5000/api/submissions', {
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/submissions', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
         }
@@ -273,7 +273,7 @@ const EvaluatorDashboard = () => {
       });
 
       // Send evaluation to backend
-      const response = await fetch(`http://localhost:5000/api/submissions/${selectedSubmission.id}/evaluate`, {
+      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/submissions/${selectedSubmission.id}/evaluate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -363,7 +363,7 @@ const EvaluatorDashboard = () => {
       console.log('📋 Descriptive answers:', selectedSubmission.descriptiveAnswers);
 
       // Send evaluation to backend
-      const response = await fetch(`http://localhost:5000/api/submissions/${selectedSubmission.id}/evaluate-descriptive`, {
+      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/submissions/${selectedSubmission.id}/evaluate-descriptive`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -446,7 +446,7 @@ const EvaluatorDashboard = () => {
     try {
       console.log('🗑️ Deleting submission:', submissionId);
       
-      const response = await fetch(`http://localhost:5000/api/submissions/${submissionId}`, {
+      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/submissions/${submissionId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -961,7 +961,7 @@ const EvaluatorDashboard = () => {
                                   // Check if the URL already has a protocol
                                   const url = answer.pdfUrl.startsWith('http') 
                                     ? answer.pdfUrl 
-                                    : `http://localhost:5000${answer.pdfUrl}`;
+                                    : `https://service-3-backend-production.up.railway.app${answer.pdfUrl}`;
                                   window.open(url, '_blank');
                                 }
                               }}
@@ -979,7 +979,7 @@ const EvaluatorDashboard = () => {
                                   // Check if the URL already has a protocol
                                   const url = answer.pdfUrl.startsWith('http') 
                                     ? answer.pdfUrl 
-                                    : `http://localhost:5000${answer.pdfUrl}`;
+                                    : `https://service-3-backend-production.up.railway.app${answer.pdfUrl}`;
                                   link.href = url;
                                   link.download = answer.fileName;
                                   link.click();
