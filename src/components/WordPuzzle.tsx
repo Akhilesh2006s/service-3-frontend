@@ -279,7 +279,7 @@ const WordPuzzle = ({ milestone, title, teluguTitle, description }: WordPuzzlePr
 
       console.log('🎯 Submitting word puzzle results:', submissionData);
 
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/submissions/milestone-voice', {
+      const response = await fetch('http://localhost:5000/api/submissions/milestone-voice', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -672,7 +672,7 @@ export default function TeluguSentenceFormation() {
     
     try {
       setIsLoading(true);
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/learning-progress', {
+      const response = await fetch('http://localhost:5000/api/learning-progress', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -700,7 +700,7 @@ export default function TeluguSentenceFormation() {
     if (!user) return;
     
     try {
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/learning-progress/sentence-formation', {
+      const response = await fetch('http://localhost:5000/api/learning-progress/sentence-formation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -734,7 +734,7 @@ export default function TeluguSentenceFormation() {
     
     try {
       setIsLoading(true);
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/learning-progress/reset/sentenceFormation', {
+      const response = await fetch('http://localhost:5000/api/learning-progress/reset/sentenceFormation', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
@@ -764,7 +764,7 @@ export default function TeluguSentenceFormation() {
     
     try {
       setIsLoading(true);
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/learning-progress/analytics', {
+      const response = await fetch('http://localhost:5000/api/learning-progress/analytics', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
         }

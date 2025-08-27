@@ -359,7 +359,7 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
   const fetchStories = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/telugu-stories?milestone=${currentMilestone}`, {
+      const response = await fetch(`http://localhost:5000/api/telugu-stories?milestone=${currentMilestone}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
         }

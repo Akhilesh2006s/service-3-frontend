@@ -254,7 +254,7 @@ const LearningContent = ({
 
       const token = localStorage.getItem('telugu-basics-token');
       
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/submissions/milestone-voice', {
+      const response = await fetch('http://localhost:5000/api/submissions/milestone-voice', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

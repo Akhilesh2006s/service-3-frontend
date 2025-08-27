@@ -81,7 +81,7 @@ const DictationExerciseManager = () => {
   const loadExercises = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/dictation-exercises', {
+      const response = await fetch('http://localhost:5000/api/dictation-exercises', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
           'Content-Type': 'application/json'
@@ -275,7 +275,7 @@ const DictationExerciseManager = () => {
 
       for (const exercise of exercises) {
         try {
-          const response = await fetch('https://service-3-backend-production.up.railway.app/api/dictation-exercises', {
+          const response = await fetch('http://localhost:5000/api/dictation-exercises', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -365,8 +365,8 @@ hard,ఉపాధ్యాయుడు,upaadhyayudu`;
 
     try {
       const url = editingExercise 
-        ? `https://service-3-backend-production.up.railway.app/api/dictation-exercises/${editingExercise._id}`
-        : 'https://service-3-backend-production.up.railway.app/api/dictation-exercises';
+        ? `http://localhost:5000/api/dictation-exercises/${editingExercise._id}`
+        : 'http://localhost:5000/api/dictation-exercises';
       
       const method = editingExercise ? 'PUT' : 'POST';
       
@@ -429,7 +429,7 @@ hard,ఉపాధ్యాయుడు,upaadhyayudu`;
     }
 
     try {
-      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/dictation-exercises/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/dictation-exercises/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
@@ -456,7 +456,7 @@ hard,ఉపాధ్యాయుడు,upaadhyayudu`;
 
   const handlePublish = async (id: string, isPublished: boolean) => {
     try {
-      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/dictation-exercises/${id}/publish`, {
+      const response = await fetch(`http://localhost:5000/api/dictation-exercises/${id}/publish`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,

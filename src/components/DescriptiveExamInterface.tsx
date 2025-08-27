@@ -85,7 +85,7 @@ const DescriptiveExamInterface: React.FC<DescriptiveExamInterfaceProps> = ({
       // Update remaining time from server every 30 seconds
       const updateTimer = async () => {
         try {
-          const response = await fetch(`https://service-3-backend-production.up.railway.app/api/exam-attempts/status/${exam.id}`, {
+          const response = await fetch(`http://localhost:5000/api/exam-attempts/status/${exam.id}`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
               'Content-Type': 'application/json'
@@ -218,7 +218,7 @@ const DescriptiveExamInterface: React.FC<DescriptiveExamInterfaceProps> = ({
           console.log('🔑 Token available:', !!token);
 
           console.log('📤 Uploading file...');
-          const uploadResponse = await fetch('https://service-3-backend-production.up.railway.app/api/uploads/upload', {
+          const uploadResponse = await fetch('http://localhost:5000/api/uploads/upload', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`
@@ -234,7 +234,7 @@ const DescriptiveExamInterface: React.FC<DescriptiveExamInterfaceProps> = ({
             
             submission = {
               ...submission,
-              pdfUrl: `https://service-3-backend-production.up.railway.app${uploadResult.data.url}`,
+              pdfUrl: `http://localhost:5000${uploadResult.data.url}`,
               fileName: uploadResult.data.originalName,
               fileSize: uploadResult.data.size
             };

@@ -255,7 +255,7 @@ const DescriptiveEvaluationInterface: React.FC<DescriptiveEvaluationInterfacePro
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => window.open(`https://service-3-backend-production.up.railway.app${answer.pdfUrl}`, '_blank')}
+                            onClick={() => window.open(`http://localhost:5000${answer.pdfUrl}`, '_blank')}
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             View PDF
@@ -265,7 +265,7 @@ const DescriptiveEvaluationInterface: React.FC<DescriptiveEvaluationInterfacePro
                             size="sm"
                             onClick={() => {
                               const link = document.createElement('a');
-                              link.href = `https://service-3-backend-production.up.railway.app${answer.pdfUrl}`;
+                              link.href = `http://localhost:5000${answer.pdfUrl}`;
                               link.download = answer.fileName;
                               link.click();
                             }}

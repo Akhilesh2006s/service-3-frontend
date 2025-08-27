@@ -237,7 +237,7 @@ const VoiceExaminationInterface: React.FC<VoiceExaminationInterfaceProps> = ({
         timeSpent: examination.timeLimit - timeRemaining
       };
 
-      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/voice-examinations/student/${examination._id}/submit`, {
+      const response = await fetch(`http://localhost:5000/api/voice-examinations/student/${examination._id}/submit`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

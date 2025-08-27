@@ -102,7 +102,7 @@ const TeluguStoryManager = ({ currentMilestone = 1 }: TeluguStoryManagerProps) =
   const fetchStories = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/telugu-stories/trainer/my-stories', {
+      const response = await fetch('http://localhost:5000/api/telugu-stories/trainer/my-stories', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
         }
@@ -181,8 +181,8 @@ const TeluguStoryManager = ({ currentMilestone = 1 }: TeluguStoryManagerProps) =
       formDataToSend.append('paragraphs', JSON.stringify(paragraphs));
 
       const url = isEditing && selectedStory?._id 
-        ? `https://service-3-backend-production.up.railway.app/api/telugu-stories/${selectedStory._id}`
-        : 'https://service-3-backend-production.up.railway.app/api/telugu-stories';
+        ? `http://localhost:5000/api/telugu-stories/${selectedStory._id}`
+        : 'http://localhost:5000/api/telugu-stories';
       
       const method = isEditing ? 'PUT' : 'POST';
 
@@ -253,7 +253,7 @@ const TeluguStoryManager = ({ currentMilestone = 1 }: TeluguStoryManagerProps) =
     if (!confirm('Are you sure you want to delete this story?')) return;
 
     try {
-      const response = await fetch(`https://service-3-backend-production.up.railway.app/api/telugu-stories/${storyId}`, {
+      const response = await fetch(`http://localhost:5000/api/telugu-stories/${storyId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
