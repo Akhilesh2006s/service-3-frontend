@@ -18,7 +18,10 @@ import {
   Volume2,
   BookOpen,
   Target,
-  Users
+  Users,
+  Upload,
+  Download,
+  FileText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,12 +49,21 @@ interface DictationExercise {
   updatedAt: string;
 }
 
+interface CSVRow {
+  difficulty: string;
+  word: string;
+  pronunciation: string;
+}
+
 const DictationExerciseManager = () => {
   const { toast } = useToast();
   const [exercises, setExercises] = useState<DictationExercise[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingExercise, setEditingExercise] = useState<DictationExercise | null>(null);
+  const [showCSVUpload, setShowCSVUpload] = useState(false);
+  const [csvData, setCsvData] = useState<CSVRow[]>([]);
+  const [csvFileName, setCsvFileName] = useState<string>('');
   
   // Form state
   const [formData, setFormData] = useState({
@@ -128,6 +140,203 @@ const DictationExerciseManager = () => {
         i === index ? { ...word, [field]: value } : word
       )
     }));
+  };
+
+  // CSV Upload Functions
+  const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.name.endsWith('.csv')) {
+      toast({
+        title: "Invalid File",
+        description: "Please upload a CSV file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setCsvFileName(file.name);
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      parseCSV(text);
+    };
+    
+    reader.readAsText(file);
+  };
+
+  const parseCSV = (csvText: string) => {
+    try {
+      const lines = csvText.split('\n').filter(line => line.trim() !== '');
+      if (lines.length < 2) {
+        toast({
+          title: "Invalid CSV",
+          description: "CSV must have header row and at least one data row",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const requiredHeaders = ['difficulty', 'word'];
+      
+      // Check if all required headers are present
+      const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+      if (missingHeaders.length > 0) {
+        toast({
+          title: "Missing Headers",
+          description: `Missing required headers: ${missingHeaders.join(', ')}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+             const data: CSVRow[] = [];
+       for (let i = 1; i < lines.length; i++) {
+         const values = lines[i].split(',').map(v => v.trim());
+         if (values.length < 2) continue; // Skip empty rows (need at least difficulty and word)
+         
+         const row: CSVRow = {
+           difficulty: values[headers.indexOf('difficulty')] || 'easy',
+           word: values[headers.indexOf('word')] || '',
+           pronunciation: values[headers.indexOf('pronunciation')] || ''
+         };
+         
+         if (row.word) {
+           data.push(row);
+         }
+       }
+
+      if (data.length === 0) {
+        toast({
+          title: "No Valid Data",
+          description: "No valid rows found in CSV",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setCsvData(data);
+      toast({
+        title: "CSV Loaded",
+        description: `Successfully loaded ${data.length} words from CSV`,
+      });
+
+    } catch (error) {
+      console.error('Error parsing CSV:', error);
+      toast({
+        title: "Error",
+        description: "Failed to parse CSV file",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const processCSVData = () => {
+    if (csvData.length === 0) return;
+
+    // Group by difficulty to create exercises
+    const exerciseGroups = new Map<string, CSVRow[]>();
+    
+    csvData.forEach(row => {
+      const key = row.difficulty;
+      if (!exerciseGroups.has(key)) {
+        exerciseGroups.set(key, []);
+      }
+      exerciseGroups.get(key)!.push(row);
+    });
+
+    // Create exercises from groups
+    const exercisesToCreate = Array.from(exerciseGroups.entries()).map(([difficulty, rows]) => {
+      return {
+        title: `${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Level Words`,
+        description: `Practice ${difficulty} level Telugu words`,
+        difficulty: difficulty as 'easy' | 'medium' | 'hard' | 'very_hard' | 'expert',
+        words: rows.map(row => ({
+          word: row.word,
+          meaning: '',
+          pronunciation: row.pronunciation
+        }))
+      };
+    });
+
+    // Create exercises
+    createExercisesFromCSV(exercisesToCreate);
+  };
+
+  const createExercisesFromCSV = async (exercises: any[]) => {
+    try {
+      setIsLoading(true);
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const exercise of exercises) {
+        try {
+          const response = await fetch('https://service-3-backend-production.up.railway.app/api/dictation-exercises', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(exercise)
+          });
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } catch (error) {
+          errorCount++;
+          console.error('Error creating exercise:', error);
+        }
+      }
+
+      toast({
+        title: "CSV Import Complete",
+        description: `Successfully created ${successCount} exercises${errorCount > 0 ? `, ${errorCount} failed` : ''}`,
+        variant: errorCount > 0 ? "destructive" : "default"
+      });
+
+      // Reset CSV data and reload exercises
+      setCsvData([]);
+      setCsvFileName('');
+      setShowCSVUpload(false);
+      loadExercises();
+
+    } catch (error) {
+      console.error('Error processing CSV:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process CSV data",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const downloadCSVTemplate = () => {
+    const template = `difficulty,word,pronunciation
+easy,నమస్కారం,namaskaram
+easy,ధన్యవాదాలు,dhanyavaadalu
+medium,మీరు ఎలా ఉన్నారు,meeru ela unnaru
+medium,నేను బాగా ఉన్నాను,nenu baaga unnaanu
+hard,విద్యార్థి,vidyaarthi
+hard,ఉపాధ్యాయుడు,upaadhyayudu`;
+
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dictation_exercises_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -296,21 +505,121 @@ const DictationExerciseManager = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">Dictation Exercise Manager</h2>
-          <p className="text-gray-600">Create and manage custom dictation exercises for learners</p>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Dictation Exercise Manager</h1>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowCSVUpload(!showCSVUpload)}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            {showCSVUpload ? 'Hide CSV Upload' : 'Upload CSV'}
+          </Button>
+          <Button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {showCreateForm ? 'Hide Form' : 'Create Exercise'}
+          </Button>
         </div>
-        <Button 
-          onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Create Exercise
-        </Button>
       </div>
+
+      {/* CSV Upload Section */}
+      {showCSVUpload && (
+        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-700">
+              <FileText className="w-5 h-5" />
+              CSV Upload
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="csv-upload">Upload CSV File</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="csv-upload"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCSVUpload}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={downloadCSVTemplate}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Template
+                </Button>
+              </div>
+              {csvFileName && (
+                <p className="text-sm text-green-600">✓ {csvFileName} loaded</p>
+              )}
+            </div>
+
+            {csvData.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold">Preview ({csvData.length} words)</h3>
+                  <Button
+                    onClick={processCSVData}
+                    disabled={isLoading}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {isLoading ? 'Creating...' : 'Create Exercises'}
+                  </Button>
+                </div>
+                
+                                 <div className="max-h-60 overflow-y-auto border rounded-lg p-3 bg-white">
+                   <table className="w-full text-sm">
+                     <thead className="bg-gray-50">
+                       <tr>
+                         <th className="text-left p-2">Difficulty</th>
+                         <th className="text-left p-2">Word</th>
+                         <th className="text-left p-2">Pronunciation</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       {csvData.slice(0, 10).map((row, index) => (
+                         <tr key={index} className="border-t">
+                           <td className="p-2">
+                             <Badge variant="outline">{row.difficulty}</Badge>
+                           </td>
+                           <td className="p-2 font-medium">{row.word}</td>
+                           <td className="p-2 text-gray-600">{row.pronunciation}</td>
+                         </tr>
+                       ))}
+                       {csvData.length > 10 && (
+                         <tr>
+                           <td colSpan={3} className="p-2 text-center text-gray-500">
+                             ... and {csvData.length - 10} more words
+                           </td>
+                         </tr>
+                       )}
+                     </tbody>
+                   </table>
+                 </div>
+              </div>
+            )}
+
+                         <div className="bg-blue-50 p-4 rounded-lg">
+               <h4 className="font-semibold text-blue-800 mb-2">CSV Format Instructions:</h4>
+               <ul className="text-sm text-blue-700 space-y-1">
+                 <li>• <strong>difficulty</strong>: easy, medium, hard, very_hard, expert (required)</li>
+                 <li>• <strong>word</strong>: Telugu word (required)</li>
+                 <li>• <strong>pronunciation</strong>: Pronunciation guide (optional)</li>
+                 <li>• Words with same difficulty will be grouped into one exercise</li>
+                 <li>• Exercise title will be automatically generated as "[Difficulty] Level Words"</li>
+               </ul>
+             </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Create/Edit Form */}
       {showCreateForm && (
