@@ -248,10 +248,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Bird',
     teluguWord: 'పక్షి',
     audio: 'పక్షి',
-    letters: ['ప', 'క', '్ష', 'ి', 'మ', 'ల', 'ర', 'ు'],
-    correctOrder: [0, 1, 2, 3],
+    letters: ['ప', 'క', '్', 'ష', 'ి', 'మ', 'ల', 'ర'],
+    correctOrder: [0, 1, 2, 3, 4],
     hint: 'Start with ప (pa)',
-    explanation: 'ప (pa) + క (ka) + ష (ṣa) + ి (i) = పక్షి (pakṣi)',
+    explanation: 'ప (pa) + క (ka) + ్ (halant) + ష (ṣa) + ి (i) = పక్షి (pakṣi)',
     difficulty: 'easy'
   },
   {
@@ -458,10 +458,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Student',
     teluguWord: 'విద్యార్థి',
     audio: 'విద్యార్థి',
-    letters: ['వ', 'ి', 'ద', '్య', 'ా', 'ర', '్థ', 'ి', 'క', 'మ', 'ల', 'ు'],
+    letters: ['వ', 'ి', 'ద', 'ా', '్య', 'ర', 'ి', '్థ', 'క', 'మ', 'ల', 'ు'],
     correctOrder: [0, 1, 2, 3, 4, 5, 6, 7],
     hint: 'Start with వ (va)',
-    explanation: 'వ (va) + ి (i) + ద (da) + య (ya) + ా (ā) + ర (ra) + థ (tha) + ి (i) = విద్యార్థి (vidyārthi)',
+    explanation: 'వ (va) + ి (i) + ద (da) + ా (ā) + ్య (ya vathu) + ర (ra) + ి (i) + ్థ (tha vathu) = విద్యార్థి (vidyārthi)',
     difficulty: 'medium'
   },
   {
@@ -469,10 +469,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Teacher',
     teluguWord: 'అధ్యాపకుడు',
     audio: 'అధ్యాపకుడు',
-    letters: ['అ', 'ధ', '్య', 'ా', 'ప', 'క', 'ు', 'డ', 'ు', 'ర', 'ల', 'ి'],
+    letters: ['అ', 'ధ', 'ా', '్య', 'ప', 'క', 'ు', 'డ', 'ు', 'ర', 'ల', 'ి'],
     correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8],
     hint: 'Start with అ (a)',
-    explanation: 'అ (a) + ధ (dha) + య (ya) + ా (ā) + ప (pa) + క (ka) + ఉ (u) + డ (ḍa) + ఉ (u) = అధ్యాపకుడు (adhyāpakuḍu)',
+    explanation: 'అ (a) + ధ (dha) + ా (ā) + ్య (ya vathu) + ప (pa) + క (ka) + ఉ (u) + డ (ḍa) + ఉ (u) = అధ్యాపకుడు (adhyāpakuḍu)',
     difficulty: 'medium'
   },
   {
@@ -502,10 +502,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Hospital',
     teluguWord: 'ఆసుపత్రి',
     audio: 'ఆసుపత్రి',
-    letters: ['ఆ', 'స', 'ు', 'ప', 'త', '్ర', 'ి', 'క', 'మ', 'ల', 'ు', 'న'],
-    correctOrder: [0, 1, 2, 3, 4, 5, 6],
+    letters: ['ఆ', 'స', 'ు', 'ప', 'త', '్', 'ర', 'ి', 'క', 'మ', 'ల', 'న'],
+    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7],
     hint: 'Start with ఆ (ā)',
-    explanation: 'ఆ (ā) + స (sa) + ఉ (u) + ప (pa) + త (ta) + ర (ra) + ి (i) = ఆసుపత్రి (āsupatri)',
+    explanation: 'ఆ (ā) + స (sa) + ఉ (u) + ప (pa) + త (ta) + ్ (halant) + ర (ra) + ి (i) = ఆసుపత్రి (āsupatri)',
     difficulty: 'medium'
   },
   {
@@ -513,10 +513,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Doctor',
     teluguWord: 'వైద్యుడు',
     audio: 'వైద్యుడు',
-    letters: ['వ', 'ై', 'ద', '్య', 'ు', 'డ', 'ు', 'క', 'మ', 'ల', 'ర', 'ి'],
-    correctOrder: [0, 1, 2, 3, 4, 5, 6],
+    letters: ['వ', 'ై', 'ద', '్', 'య', 'ు', 'డ', 'ు', 'క', 'మ', 'ల', 'ర'],
+    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7],
     hint: 'Start with వ (va)',
-    explanation: 'వ (va) + ఐ (ai) + ద (da) + య (ya) + ఉ (u) + డ (ḍa) + ఉ (u) = వైద్యుడు (vaidyuḍu)',
+    explanation: 'వ (va) + ఐ (ai) + ద (da) + ్ (halant) + య (ya) + ఉ (u) + డ (ḍa) + ఉ (u) = వైద్యుడు (vaidyuḍu)',
     difficulty: 'medium'
   },
   {
@@ -568,10 +568,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Newspaper',
     teluguWord: 'వార్తాపత్రిక',
     audio: 'వార్తాపత్రిక',
-    letters: ['వ', 'ా', 'ర', '్త', 'ా', 'ప', 'త', '్ర', 'ి', 'క', 'మ', 'ల'],
-    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    letters: ['వ', 'ా', 'ర', '్', 'త', 'ా', 'ప', 'త', '్', 'ర', 'ి', 'క'],
+    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     hint: 'Start with వ (va)',
-    explanation: 'వ (va) + ా (ā) + ర (ra) + త (ta) + ా (ā) + ప (pa) + త (ta) + ర (ra) + ి (i) + క (ka) = వార్తాపత్రిక (vārtāpatrika)',
+    explanation: 'వ (va) + ా (ā) + ర (ra) + ్ (halant) + త (ta) + ా (ā) + ప (pa) + త (ta) + ్ (halant) + ర (ra) + ి (i) + క (ka) = వార్తాపత్రిక (vārtāpatrika)',
     difficulty: 'medium'
   },
   {
@@ -590,10 +590,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'University',
     teluguWord: 'విశ్వవిద్యాలయం',
     audio: 'విశ్వవిద్యాలయం',
-    letters: ['వ', 'ి', 'శ', '్వ', 'వ', 'ి', 'ద', '్య', 'ా', 'ల', 'య', 'ం'],
+    letters: ['వ', 'ి', 'శ', '్', 'వ', 'వ', 'ి', 'ద', '్', 'య', 'ా', 'ల'],
     correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     hint: 'Start with వ (va)',
-    explanation: 'వ (va) + ి (i) + శ (śa) + వ (va) + వ (va) + ి (i) + ద (da) + య (ya) + ా (ā) + ల (la) + య (ya) + ం (sunnā) = విశ్వవిద్యాలయం (viśvavidyālayam)',
+    explanation: 'వ (va) + ి (i) + శ (śa) + ్ (halant) + వ (va) + వ (va) + ి (i) + ద (da) + ్ (halant) + య (ya) + ా (ā) + ల (la) + య (ya) + ం (sunnā) = విశ్వవిద్యాలయం (viśvavidyālayam)',
     difficulty: 'medium'
   },
   {
@@ -623,10 +623,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Minister',
     teluguWord: 'మంత్రి',
     audio: 'మంత్రి',
-    letters: ['మ', 'ం', 'త', '్ర', 'ి', 'క', 'ల', 'ర', 'ు', 'న', 'ా', 'మ'],
-    correctOrder: [0, 1, 2, 3, 4],
+    letters: ['మ', 'ం', 'త', '్', 'ర', 'ి', 'క', 'ల', 'ు', 'న', 'ా', 'మ'],
+    correctOrder: [0, 1, 2, 3, 4, 5],
     hint: 'Start with మ (ma)',
-    explanation: 'మ (ma) + ం (sunnā) + త (ta) + ర (ra) + ి (i) = మంత్రి (maṃtri)',
+    explanation: 'మ (ma) + ం (sunnā) + త (ta) + ్ (halant) + ర (ra) + ి (i) = మంత్రి (maṃtri)',
     difficulty: 'medium'
   },
   {
@@ -722,10 +722,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Airport',
     teluguWord: 'విమానాశ్రయం',
     audio: 'విమానాశ్రయం',
-    letters: ['వ', 'ి', 'మ', 'ా', 'న', 'ా', 'శ', '్ర', 'య', 'ం', 'క', 'ల'],
-    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    letters: ['వ', 'ి', 'మ', 'ా', 'న', 'ా', 'శ', '్', 'ర', 'య', 'ం', 'క'],
+    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     hint: 'Start with వ (va)',
-    explanation: 'వ (va) + ి (i) + మ (ma) + ా (ā) + న (na) + ా (ā) + శ (śa) + ర (ra) + య (ya) + ం (sunnā) = విమానాశ్రయం (vimānāśrayam)',
+    explanation: 'వ (va) + ి (i) + మ (ma) + ా (ā) + న (na) + ా (ā) + శ (śa) + ్ (halant) + ర (ra) + య (ya) + ం (sunnā) = విమానాశ్రయం (vimānāśrayam)',
     difficulty: 'medium'
   },
   {
@@ -910,10 +910,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Series',
     teluguWord: 'శ్రేణి',
     audio: 'శ్రేణి',
-    letters: ['శ', '్ర', 'ే', 'ణ', 'ి', 'క', 'మ', 'ల', 'ు', 'న'],
-    correctOrder: [0, 1, 2, 3, 4],
+    letters: ['శ', '్', 'ర', 'ే', 'ణ', 'ి', 'క', 'మ', 'ల', 'ు'],
+    correctOrder: [0, 1, 2, 3, 4, 5],
     hint: 'Start with శ (śa)',
-    explanation: 'శ (śa) + ర (ra) + ఏ (ē) + ణ (ṇa) + ి (i) = శ్రేణి (śrēṇi)',
+    explanation: 'శ (śa) + ్ (halant) + ర (ra) + ఏ (ē) + ణ (ṇa) + ి (i) = శ్రేణి (śrēṇi)',
     difficulty: 'hard'
   },
   {
@@ -921,10 +921,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Philosophy',
     teluguWord: 'తత్వశాస్త్రం',
     audio: 'తత్వశాస్త్రం',
-    letters: ['త', 'త', '్వ', 'శ', 'ా', 'స', '్త', '్ర', 'ం', 'క', 'మ', 'ల'],
-    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+    letters: ['త', 'త', '్', 'వ', 'శ', 'ా', 'స', '్', 'త', '్', 'ర', 'ం'],
+    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     hint: 'Start with త (ta)',
-    explanation: 'త (ta) + త (ta) + వ (va) + శ (śa) + ా (ā) + స (sa) + త (ta) + ర (ra) + ం (sunnā) = తత్వశాస్త్రం (tatvaśāstraṃ)',
+    explanation: 'త (ta) + త (ta) + ్ (halant) + వ (va) + శ (śa) + ా (ā) + స (sa) + ్ (halant) + త (ta) + ్ (halant) + ర (ra) + ం (sunnā) = తత్వశాస్త్రం (tatvaśāstraṃ)',
     difficulty: 'hard'
   },
   {
@@ -932,10 +932,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Mathematics',
     teluguWord: 'గణితశాస్త్రం',
     audio: 'గణితశాస్త్రం',
-    letters: ['గ', 'ణ', 'ి', 'త', 'శ', 'ా', 'స', '్త', '్ర', 'ం', 'క', 'మ'],
-    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    letters: ['గ', 'ణ', 'ి', 'త', 'శ', 'ా', 'స', '్', 'త', '్', 'ర', 'ం'],
+    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     hint: 'Start with గ (ga)',
-    explanation: 'గ (ga) + ణ (ṇa) + ి (i) + త (ta) + శ (śa) + ా (ā) + స (sa) + త (ta) + ర (ra) + ం (sunnā) = గణితశాస్త్రం (gaṇitaśāstraṃ)',
+    explanation: 'గ (ga) + ణ (ṇa) + ి (i) + త (ta) + శ (śa) + ా (ā) + స (sa) + ్ (halant) + త (ta) + ్ (halant) + ర (ra) + ం (sunnā) = గణితశాస్త్రం (gaṇitaśāstraṃ)',
     difficulty: 'hard'
   },
   {
@@ -998,10 +998,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Independence',
     teluguWord: 'స్వాతంత్ర్యం',
     audio: 'స్వాతంత్ర్యం',
-    letters: ['స', '్వ', 'ా', 'త', 'ం', 'త', '్ర', '్య', 'ం', 'క', 'మ', 'ల'],
-    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+    letters: ['స', '్', 'వ', 'ా', 'త', 'ం', 'త', '్', 'ర', '్', 'య', 'ం'],
+    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     hint: 'Start with స (sa)',
-    explanation: 'స (sa) + వ (va) + ా (ā) + త (ta) + ం (sunnā) + త (ta) + ర (ra) + య (ya) + ం (sunnā) = స్వాతంత్ర్యం (svātaṃtryaṃ)',
+    explanation: 'స (sa) + ్ (halant) + వ (va) + ా (ā) + త (ta) + ం (sunnā) + త (ta) + ్ (halant) + ర (ra) + ్ (halant) + య (ya) + ం (sunnā) = స్వాతంత్ర్యం (svātaṃtryaṃ)',
     difficulty: 'hard'
   },
   {
@@ -1097,10 +1097,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Medicine',
     teluguWord: 'వైద్యం',
     audio: 'వైద్యం',
-    letters: ['వ', 'ై', 'ద', '్య', 'ం', 'క', 'మ', 'ల', 'ర', 'ి', 'ు', 'న'],
-    correctOrder: [0, 1, 2, 3, 4],
+    letters: ['వ', 'ై', 'ద', '్', 'య', 'ం', 'క', 'మ', 'ల', 'ర', 'ి', 'ు'],
+    correctOrder: [0, 1, 2, 3, 4, 5],
     hint: 'Start with వ (va)',
-    explanation: 'వ (va) + ఐ (ai) + ద (da) + య (ya) + ం (sunnā) = వైద్యం (vaidyaṃ)',
+    explanation: 'వ (va) + ఐ (ai) + ద (da) + ్ (halant) + య (ya) + ం (sunnā) = వైద్యం (vaidyaṃ)',
     difficulty: 'hard'
   },
   {
@@ -1108,10 +1108,10 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Education',
     teluguWord: 'విద్య',
     audio: 'విద్య',
-    letters: ['వ', 'ి', 'ద', '్య', 'క', 'మ', 'ల', 'ర'],
-    correctOrder: [0, 1, 2, 3],
+    letters: ['వ', 'ి', 'ద', '్', 'య', 'క', 'మ', 'ల'],
+    correctOrder: [0, 1, 2, 3, 4],
     hint: 'Start with వ (va)',
-    explanation: 'వ (va) + ి (i) + ద (da) + య (ya) = విద్య (vidya)',
+    explanation: 'వ (va) + ి (i) + ద (da) + ్ (halant) + య (ya) = విద్య (vidya)',
     difficulty: 'hard'
   }
 ];

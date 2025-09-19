@@ -288,8 +288,196 @@ export default function TeluguSpelling() {
     setAvailableLetters(prev => [...prev, letterToRemove]);
   };
 
+  // Helper function to get correct spelling in component format
+  const getCorrectSpellingComponents = () => {
+    return currentExercise.correctOrder.map(index => currentExercise.letters[index]);
+  };
+
+  // Helper function to convert correct spelling components to proper conjunct form
+  const getCorrectSpellingFormed = () => {
+    const components = getCorrectSpellingComponents();
+    
+    // Use the same conjunct logic as getFormedWord
+    let formedWord = '';
+    let i = 0;
+    
+    while (i < components.length) {
+      const currentChar = components[i];
+      const nextChar = i + 1 < components.length ? components[i + 1] : null;
+      const nextNextChar = i + 2 < components.length ? components[i + 2] : null;
+      
+      // Check for various conjunct combinations
+      let foundConjunct = false;
+      
+      // ద + ్య = ద్య (separated by vowel)
+      if (currentChar === 'ద' && nextNextChar === '్య') {
+        formedWord += 'ద్య';
+        i += 3; // Skip ద, vowel, ్య
+        foundConjunct = true;
+      }
+      // ర + ్థ = ర్థ (separated by vowel)
+      else if (currentChar === 'ర' && nextNextChar === '్థ') {
+        formedWord += 'ర్థ';
+        i += 3; // Skip ర, vowel, ్థ
+        foundConjunct = true;
+      }
+      // క + ్ + ష = క్ష
+      else if (currentChar === 'క' && nextChar === '్' && nextNextChar === 'ష') {
+        formedWord += 'క్ష';
+        i += 3; // Skip క, ్, ష
+        foundConjunct = true;
+      }
+      // త + ్ + ర = త్ర
+      else if (currentChar === 'త' && nextChar === '్' && nextNextChar === 'ర') {
+        formedWord += 'త్ర';
+        i += 3; // Skip త, ్, ర
+        foundConjunct = true;
+      }
+      // ద + ్ + వ = ద్వ
+      else if (currentChar === 'ద' && nextChar === '్' && nextNextChar === 'వ') {
+        formedWord += 'ద్వ';
+        i += 3; // Skip ద, ్, వ
+        foundConjunct = true;
+      }
+      // గ + ్ + య = గ్య
+      else if (currentChar === 'గ' && nextChar === '్' && nextNextChar === 'య') {
+        formedWord += 'గ్య';
+        i += 3; // Skip గ, ్, య
+        foundConjunct = true;
+      }
+      // శ + ్ + ర = శ్ర
+      else if (currentChar === 'శ' && nextChar === '్' && nextNextChar === 'ర') {
+        formedWord += 'శ్ర';
+        i += 3; // Skip శ, ్, ర
+        foundConjunct = true;
+      }
+      // హ + ్ + మ = హ్మ
+      else if (currentChar === 'హ' && nextChar === '్' && nextNextChar === 'మ') {
+        formedWord += 'హ్మ';
+        i += 3; // Skip హ, ్, మ
+        foundConjunct = true;
+      }
+      
+      // Regular character
+      if (!foundConjunct) {
+        formedWord += currentChar;
+        i++;
+      }
+    }
+    
+    return formedWord;
+  };
+
+  // Helper function to convert selected components to proper conjunct form
+  const getFormedWord = () => {
+    const components = selectedLetters.map(index => currentExercise.letters[index]);
+    
+    console.log('🔍 getFormedWord Debug:', {
+      selectedLetters,
+      components,
+      exerciseId: currentExercise.id,
+      componentsLength: components.length,
+      fullComponents: components.map((c, i) => `${i}:${c}`).join(', ')
+    });
+    
+    // Universal conjunct consonant handling for all exercises
+    let formedWord = '';
+    let i = 0;
+    
+    while (i < components.length) {
+      const currentChar = components[i];
+      const nextChar = i + 1 < components.length ? components[i + 1] : null;
+      const nextNextChar = i + 2 < components.length ? components[i + 2] : null;
+      
+      console.log(`🔍 Processing index ${i}: "${currentChar}" (next: "${nextChar}", next+1: "${nextNextChar}")`);
+      
+      // Check for various conjunct combinations
+      let foundConjunct = false;
+      
+      // ద + ్య = ద్య (separated by vowel)
+      if (currentChar === 'ద' && nextNextChar === '్య') {
+        formedWord += 'ద్య';
+        console.log('🔍 Found ద + ్య (separated), adding ద్య, skipping to index', i + 3);
+        i += 3; // Skip ద, vowel, ్య
+        foundConjunct = true;
+      }
+      // ర + ్థ = ర్థ (separated by vowel)
+      else if (currentChar === 'ర' && nextNextChar === '్థ') {
+        formedWord += 'ర్థ';
+        console.log('🔍 Found ర + ్థ (separated), adding ర్థ, skipping to index', i + 3);
+        i += 3; // Skip ర, vowel, ్థ
+        foundConjunct = true;
+      }
+      // క + ్ + ష = క్ష
+      else if (currentChar === 'క' && nextChar === '్' && nextNextChar === 'ష') {
+        formedWord += 'క్ష';
+        console.log('🔍 Found క + ్ + ష, adding క్ష, skipping to index', i + 3);
+        i += 3; // Skip క, ్, ష
+        foundConjunct = true;
+      }
+      // త + ్ + ర = త్ర
+      else if (currentChar === 'త' && nextChar === '్' && nextNextChar === 'ర') {
+        formedWord += 'త్ర';
+        console.log('🔍 Found త + ్ + ర, adding త్ర, skipping to index', i + 3);
+        i += 3; // Skip త, ్, ర
+        foundConjunct = true;
+      }
+      // ద + ్ + వ = ద్వ
+      else if (currentChar === 'ద' && nextChar === '్' && nextNextChar === 'వ') {
+        formedWord += 'ద్వ';
+        console.log('🔍 Found ద + ్ + వ, adding ద్వ, skipping to index', i + 3);
+        i += 3; // Skip ద, ్, వ
+        foundConjunct = true;
+      }
+      // గ + ్ + య = గ్య
+      else if (currentChar === 'గ' && nextChar === '్' && nextNextChar === 'య') {
+        formedWord += 'గ్య';
+        console.log('🔍 Found గ + ్ + య, adding గ్య, skipping to index', i + 3);
+        i += 3; // Skip గ, ్, య
+        foundConjunct = true;
+      }
+      // శ + ్ + ర = శ్ర
+      else if (currentChar === 'శ' && nextChar === '్' && nextNextChar === 'ర') {
+        formedWord += 'శ్ర';
+        console.log('🔍 Found శ + ్ + ర, adding శ్ర, skipping to index', i + 3);
+        i += 3; // Skip శ, ్, ర
+        foundConjunct = true;
+      }
+      // హ + ్ + మ = హ్మ
+      else if (currentChar === 'హ' && nextChar === '్' && nextNextChar === 'మ') {
+        formedWord += 'హ్మ';
+        console.log('🔍 Found హ + ్ + మ, adding హ్మ, skipping to index', i + 3);
+        i += 3; // Skip హ, ్, మ
+        foundConjunct = true;
+      }
+      
+      // Regular character
+      if (!foundConjunct) {
+        formedWord += currentChar;
+        console.log(`🔍 Adding regular character: "${currentChar}", moving to index`, i + 1);
+        i++;
+      }
+      
+      console.log(`🔍 Current formed word: "${formedWord}", next index: ${i}`);
+    }
+    
+    console.log('🔍 Final formed word:', formedWord);
+    return formedWord;
+  };
+
   const checkAnswer = async () => {
-    const isAnswerCorrect = JSON.stringify(selectedLetters) === JSON.stringify(currentExercise.correctOrder);
+    // Check if the final word formed matches the correct word
+    const userWord = getFormedWord();
+    const isAnswerCorrect = userWord === currentExercise.teluguWord;
+    
+    // Debug logging
+    console.log('🔍 Spelling Check Debug:');
+    console.log('Selected letters indices:', selectedLetters);
+    console.log('Selected letters:', selectedLetters.map(index => currentExercise.letters[index]));
+    console.log('User word:', userWord);
+    console.log('Correct word:', currentExercise.teluguWord);
+    console.log('Is correct:', isAnswerCorrect);
+    
     setIsCorrect(isAnswerCorrect);
     
     // Save progress to backend
@@ -518,7 +706,7 @@ export default function TeluguSpelling() {
                     <div className="text-center">
                       <p className="text-sm text-gray-600">Combined word:</p>
                       <p className="text-2xl font-bold text-blue-700">
-                        {selectedLetters.map(index => currentExercise.letters[index]).join('')}
+                        {getFormedWord()}
                       </p>
                     </div>
                   </div>
@@ -541,7 +729,7 @@ export default function TeluguSpelling() {
                   {/* Correct Answer */}
                   <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                     <p className="text-sm font-medium text-yellow-800 mb-2">Correct spelling:</p>
-                    <p className="text-lg font-bold text-yellow-700">{currentExercise.teluguWord}</p>
+                    <p className="text-lg font-bold text-yellow-700">{getCorrectSpellingFormed()}</p>
                   </div>
                    
                    {/* Comparison */}
@@ -552,11 +740,11 @@ export default function TeluguSpelling() {
                          <div className="text-center">
                            <p className="text-xs text-gray-600">Your Answer</p>
                            <p className={`text-lg font-bold ${
-                             JSON.stringify(selectedLetters) === JSON.stringify(currentExercise.correctOrder)
+                             getFormedWord() === currentExercise.teluguWord
                                ? 'text-green-600' 
                                : 'text-red-600'
                            }`}>
-                             {selectedLetters.map(index => currentExercise.letters[index]).join('')}
+                             {getFormedWord()}
                            </p>
                          </div>
                          <div className="text-gray-400">vs</div>
@@ -636,7 +824,7 @@ export default function TeluguSpelling() {
             <div className="space-y-3">
                              <Button
                  onClick={checkAnswer}
-                 disabled={selectedLetters.length !== currentExercise.correctOrder.length || isCorrect !== null}
+                 disabled={selectedLetters.length === 0 || isCorrect !== null}
                  className="w-full"
                  size="lg"
                >
@@ -674,7 +862,7 @@ export default function TeluguSpelling() {
                   <div className="text-center">
                     <p className="text-sm text-gray-600">Correct spelling:</p>
                     <p className="text-lg font-bold text-blue-700">
-                      {currentExercise.correctOrder.map(index => currentExercise.letters[index]).join('')}
+                      {getCorrectSpellingFormed()}
                     </p>
                   </div>
                 )}
