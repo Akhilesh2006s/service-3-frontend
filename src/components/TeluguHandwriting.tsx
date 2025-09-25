@@ -587,7 +587,15 @@ export default function TeluguHandwriting() {
               {!availableVoices.some(voice => voice.lang.includes('te')) && (
                 <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                   <p className="text-xs text-yellow-800">
-                    <strong>💡 Tip:</strong> For better Telugu pronunciation, install Telugu language pack in Windows Settings → Time & Language → Language & Region → Add a language → Telugu
+                    <strong>💡 Tip:</strong> Telugu language is installed in Chrome but TTS voices may need Windows installation. Try clicking "Relaunch" in Chrome language settings, then check Windows Settings → Time & Language → Speech → Text-to-speech for Telugu voices.
+                  </p>
+                </div>
+              )}
+              
+              {availableVoices.some(voice => voice.lang.includes('te')) && (
+                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-xs text-green-800">
+                    <strong>✅ Great!</strong> Telugu voices are available. The audio should work perfectly now!
                   </p>
                 </div>
               )}
