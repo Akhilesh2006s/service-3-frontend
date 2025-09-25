@@ -371,38 +371,63 @@ export default function TeluguHandwriting() {
     }
   };
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getEventPos = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    let clientX, clientY;
+    
+    if ('touches' in e) {
+      // Touch event
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      // Mouse event
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault(); // Prevent scrolling on mobile
     setIsDrawing(true);
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const pos = getEventPos(e);
         ctx.beginPath();
-        ctx.moveTo(x, y);
+        ctx.moveTo(pos.x, pos.y);
       }
     }
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     
+    e.preventDefault(); // Prevent scrolling on mobile
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        ctx.lineTo(x, y);
+        const pos = getEventPos(e);
+        ctx.lineTo(pos.x, pos.y);
         ctx.stroke();
       }
     }
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e?: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (e) e.preventDefault();
     setIsDrawing(false);
   };
 
@@ -538,6 +563,36 @@ export default function TeluguHandwriting() {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
       }
+      
+      // Handle mobile canvas sizing
+      const handleResize = () => {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        
+        // Set display size
+        canvas.style.width = Math.min(600, window.innerWidth - 40) + 'px';
+        canvas.style.height = '200px';
+        
+        // Set actual size in memory (scaled to account for extra pixel density)
+        canvas.width = Math.min(600, window.innerWidth - 40) * dpr;
+        canvas.height = 200 * dpr;
+        
+        // Scale the drawing context so everything will work at the higher ratio
+        if (ctx) {
+          ctx.scale(dpr, dpr);
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 2;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+        }
+      };
+      
+      handleResize();
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
     }
   }, [currentExercise]);
 
@@ -702,16 +757,24 @@ export default function TeluguHandwriting() {
           <div className="mb-6">
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Write the word here</h3>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 overflow-x-auto">
                 <canvas
                   ref={canvasRef}
                   width={600}
                   height={200}
-                  className="border border-gray-200 rounded bg-white cursor-crosshair"
+                  className="border border-gray-200 rounded bg-white cursor-crosshair touch-none w-full max-w-full"
                   onMouseDown={startDrawing}
                   onMouseMove={draw}
                   onMouseUp={stopDrawing}
                   onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                  style={{ 
+                    touchAction: 'none',
+                    maxWidth: '100%',
+                    height: 'auto'
+                  }}
                 />
               </div>
               <div className="flex justify-center space-x-2 mt-4">
