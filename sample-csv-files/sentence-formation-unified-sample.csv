@@ -1,0 +1,7 @@
+sentence_type,source_sentence,target_meaning,difficulty
+en-te,I am going to school,నేను పాఠశాలకు వెళుతున్నాను,easy
+en-te,Guests came to our house,మా ఇంటికి అతిథులు వచ్చారు,medium
+en-te,Students are reading books,విద్యార్థులు పుస్తకాలు చదువుతున్నారు,hard
+te-en,నేను పాఠశాలకు వెళుతున్నాను,I am going to school,easy
+te-en,మా ఇంటికి అతిథులు వచ్చారు,Guests came to our house,medium
+te-en,విద్యార్థులు పుస్తకాలు చదువుతున్నారు,Students are reading books,hard

@@ -17,6 +17,8 @@ import TeluguStoryManager from "@/components/TeluguStoryManager";
 import TeluguUnitManager from "@/components/TeluguUnitManager";
 import VoiceExaminationCreator from "@/components/VoiceExaminationCreator";
 import DictationExerciseManager from "@/components/DictationExerciseManager";
+import TeluguVakyaManager from "@/components/TeluguVakyaManager";
+import VarnamalaManager from "@/components/VarnamalaManager";
 
 
 
@@ -1006,6 +1008,14 @@ const TrainerDashboard = () => {
             <BookOpen className="w-4 h-4" />
             Dictation Exercises
           </TabsTrigger>
+          <TabsTrigger value="telugu-vakya" className="flex items-center gap-2">
+            <Type className="w-4 h-4" />
+            Telugu Vakya
+          </TabsTrigger>
+          <TabsTrigger value="varnamala" className="flex items-center gap-2">
+            <Type className="w-4 h-4" />
+            Varnamala
+          </TabsTrigger>
           <TabsTrigger value="students" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Students
@@ -1835,6 +1845,14 @@ const TrainerDashboard = () => {
 
       <TabsContent value="dictation-exercises" className="space-y-4">
         <DictationExerciseManager />
+      </TabsContent>
+
+      <TabsContent value="telugu-vakya" className="space-y-4">
+        <TeluguVakyaManager />
+      </TabsContent>
+
+      <TabsContent value="varnamala" className="space-y-4">
+        <VarnamalaManager />
       </TabsContent>
 
         <TabsContent value="students" className="space-y-4">

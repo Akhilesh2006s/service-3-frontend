@@ -9,6 +9,21 @@ import { useAuth } from '../contexts/AuthContext';
 import { spellingExercises, type SpellingExercise } from '../data/spellingExercises';
 // Remove dependency on complex speech utility - use direct approach instead
 
+interface UploadedVarnamalaExercise {
+  _id: string;
+  teluguWord: string;
+  englishMeaning: string;
+  difficulty: string;
+  letters: {
+    original: string[];
+    jumbled: string[];
+    correctOrder: number[];
+    randomLetters: string[];
+  };
+  isActive: boolean;
+  createdAt: string;
+}
+
 export default function TeluguSpelling() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [selectedLetters, setSelectedLetters] = useState<number[]>([]);
@@ -23,16 +38,58 @@ export default function TeluguSpelling() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
+  const [uploadedExercises, setUploadedExercises] = useState<UploadedVarnamalaExercise[]>([]);
+  const [isLoadingUploaded, setIsLoadingUploaded] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Convert uploaded exercises to SpellingExercise format
+  const convertUploadedToSpellingExercises = (uploaded: UploadedVarnamalaExercise[]): SpellingExercise[] => {
+    return uploaded.map(exercise => ({
+      id: exercise._id,
+      teluguWord: exercise.teluguWord,
+      englishMeaning: exercise.englishMeaning,
+      difficulty: exercise.difficulty as 'easy' | 'medium' | 'hard',
+      letters: exercise.letters.original,
+      correctOrder: exercise.letters.correctOrder,
+      explanation: `Form the word "${exercise.teluguWord}" (${exercise.englishMeaning}) by selecting the correct letters in order.`,
+      isUploaded: true
+    }));
+  };
+
+  // Combine hardcoded and uploaded exercises
+  const allExercises = [...spellingExercises, ...convertUploadedToSpellingExercises(uploadedExercises)];
+
   // Filter exercises based on difficulty
   const filteredExercises = selectedDifficulty === 'all' 
-    ? spellingExercises 
-    : spellingExercises.filter(ex => ex.difficulty === selectedDifficulty);
+    ? allExercises 
+    : allExercises.filter(ex => ex.difficulty === selectedDifficulty);
 
   // Get current exercise
   const currentExercise = filteredExercises[currentExerciseIndex];
+
+  // Fetch uploaded Varnamala exercises
+  const fetchUploadedExercises = async () => {
+    try {
+      setIsLoadingUploaded(true);
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/csv-upload/exercises/varnamala?limit=100', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setUploadedExercises(result.data || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching uploaded exercises:', error);
+    } finally {
+      setIsLoadingUploaded(false);
+    }
+  };
 
   // API functions
   const loadProgress = async () => {
@@ -165,9 +222,10 @@ export default function TeluguSpelling() {
     setIsPlaying(false);
   };
 
-  // Load progress on component mount
+  // Load progress and uploaded exercises on component mount
   useEffect(() => {
     loadProgress();
+    fetchUploadedExercises();
   }, [user]);
 
   // Initialize speech synthesis voices
@@ -657,6 +715,11 @@ export default function TeluguSpelling() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-700 text-base sm:text-lg">
               <span>Listen and Spell</span>
+              {(currentExercise as any)?.isUploaded && (
+                <Badge variant="secondary" className="text-xs">
+                  Uploaded
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4">

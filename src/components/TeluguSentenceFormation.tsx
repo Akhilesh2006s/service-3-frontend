@@ -18,6 +18,22 @@ interface SentenceExercise {
   hint: string;
   explanation: string;
   difficulty: 'easy' | 'medium' | 'hard';
+  type?: 'telugu' | 'english';
+}
+
+interface UploadedExercise {
+  _id: string;
+  sentenceType: 'te-en' | 'en-te';
+  sourceSentence: string;
+  targetMeaning: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  words: {
+    original: string[];
+    jumbled: string[];
+    correctOrder: number[];
+  };
+  isActive: boolean;
+  createdAt: string;
 }
 
 // Function to generate additional exercises
@@ -655,16 +671,71 @@ export default function TeluguSentenceFormation() {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
+  const [selectedExerciseType, setSelectedExerciseType] = useState<'all' | 'telugu' | 'english'>('all');
+  const [uploadedExercises, setUploadedExercises] = useState<UploadedExercise[]>([]);
+  const [isLoadingUploaded, setIsLoadingUploaded] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Filter exercises based on difficulty
-  const filteredExercises = selectedDifficulty === 'all' 
-    ? exercises 
-    : exercises.filter(ex => ex.difficulty === selectedDifficulty);
+  // Convert uploaded exercises to component format
+  const convertUploadedToExercises = (uploaded: UploadedExercise[]): SentenceExercise[] => {
+    return uploaded.map((exercise, index) => ({
+      id: 1000 + index, // Use high IDs to avoid conflicts with hardcoded exercises
+      words: exercise.words.jumbled,
+      correctOrder: exercise.words.correctOrder,
+      sentence: exercise.sourceSentence,
+      meaning: exercise.targetMeaning,
+      hint: `Arrange the words to form: ${exercise.targetMeaning}`,
+      explanation: `Correct sentence: ${exercise.sourceSentence}`,
+      difficulty: exercise.difficulty,
+      type: exercise.sentenceType === 'te-en' ? 'telugu' : 'english'
+    }));
+  };
+
+  // Fetch uploaded exercises from backend
+  const fetchUploadedExercises = async () => {
+    setIsLoadingUploaded(true);
+    try {
+      const token = localStorage.getItem('telugu-basics-token');
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/csv-upload/exercises/sentence-formation', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setUploadedExercises(result.data || []);
+      } else {
+        console.error('Failed to fetch uploaded exercises');
+      }
+    } catch (error) {
+      console.error('Error fetching uploaded exercises:', error);
+    } finally {
+      setIsLoadingUploaded(false);
+    }
+  };
+
+  // Add type to hardcoded exercises (they are all Telugu exercises)
+  const hardcodedExercisesWithType = exercises.map(ex => ({ ...ex, type: 'telugu' as const }));
+  
+  // Combine hardcoded and uploaded exercises
+  const allExercises = [...hardcodedExercisesWithType, ...convertUploadedToExercises(uploadedExercises)];
+
+  // Filter exercises based on difficulty and exercise type
+  const filteredExercises = allExercises.filter(ex => {
+    const difficultyMatch = selectedDifficulty === 'all' || ex.difficulty === selectedDifficulty;
+    const typeMatch = selectedExerciseType === 'all' || ex.type === selectedExerciseType;
+    return difficultyMatch && typeMatch;
+  });
 
   // Get current exercise
   const currentExercise = filteredExercises[currentExerciseIndex];
+
+  // Load uploaded exercises on component mount
+  useEffect(() => {
+    fetchUploadedExercises();
+  }, []);
 
   // API functions
   const loadProgress = async () => {
@@ -795,6 +866,17 @@ export default function TeluguSentenceFormation() {
     setShowAnswer(false);
   };
 
+  const handleExerciseTypeChange = (type: 'all' | 'telugu' | 'english') => {
+    setSelectedExerciseType(type);
+    setCurrentExerciseIndex(0);
+    setSelectedWords([]);
+    setAvailableWords([]);
+    setIsCorrect(null);
+    setShowHint(false);
+    setShowExplanation(false);
+    setShowAnswer(false);
+  };
+
   // Load progress on component mount
   useEffect(() => {
     loadProgress();
@@ -805,6 +887,7 @@ export default function TeluguSentenceFormation() {
   }, [currentExerciseIndex]);
 
   const resetExercise = () => {
+    if (!currentExercise) return;
     setSelectedWords([]);
     setAvailableWords([...currentExercise.words]);
     setIsCorrect(null);
@@ -822,7 +905,7 @@ export default function TeluguSentenceFormation() {
   };
 
   const selectWord = (wordIndex: number) => {
-    if (isCorrect !== null) return; // Don't allow changes after submission
+    if (!currentExercise || isCorrect !== null) return; // Don't allow changes after submission
     
     // Find the word in available words
     const wordToSelect = currentExercise.words[wordIndex];
@@ -835,7 +918,7 @@ export default function TeluguSentenceFormation() {
   };
 
   const deselectWord = (wordIndex: number) => {
-    if (isCorrect !== null) return; // Don't allow changes after submission
+    if (!currentExercise || isCorrect !== null) return; // Don't allow changes after submission
     
     const wordToRemove = currentExercise.words[wordIndex];
     setSelectedWords(prev => prev.filter(index => index !== wordIndex));
@@ -843,6 +926,7 @@ export default function TeluguSentenceFormation() {
   };
 
   const checkAnswer = async () => {
+    if (!currentExercise) return;
     const isAnswerCorrect = JSON.stringify(selectedWords) === JSON.stringify(currentExercise.correctOrder);
     setIsCorrect(isAnswerCorrect);
     
@@ -886,7 +970,7 @@ export default function TeluguSentenceFormation() {
   };
 
   const shuffleWords = () => {
-    if (isCorrect !== null) return; // Don't allow shuffling after submission
+    if (!currentExercise || isCorrect !== null) return; // Don't allow shuffling after submission
     
     const shuffled = [...currentExercise.words].sort(() => Math.random() - 0.5);
     setAvailableWords(shuffled);
@@ -900,6 +984,27 @@ export default function TeluguSentenceFormation() {
       setAvailableWords(shuffled);
     }
   }, [currentExerciseIndex]);
+
+  // If no exercises available, show a message
+  if (filteredExercises.length === 0) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+          <CardHeader>
+            <CardTitle className="text-blue-700 text-center">తెలుగు వాక్య నిర్మాణం</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center py-8">
+            <p className="text-lg text-gray-600 mb-4">
+              {isLoadingUploaded ? 'Loading exercises...' : 'No exercises available for the selected criteria.'}
+            </p>
+            <p className="text-sm text-gray-500">
+              Try changing the difficulty level or exercise type, or upload some exercises in the Trainer Dashboard.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -977,15 +1082,54 @@ export default function TeluguSentenceFormation() {
         </CardContent>
       </Card>
 
+      {/* Exercise Type Selector */}
+      <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <CardHeader>
+          <CardTitle className="text-blue-700">Select Exercise Type</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Button
+              variant={selectedExerciseType === 'all' ? 'default' : 'outline'}
+              onClick={() => handleExerciseTypeChange('all')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              All Types
+            </Button>
+            <Button
+              variant={selectedExerciseType === 'telugu' ? 'default' : 'outline'}
+              onClick={() => handleExerciseTypeChange('telugu')}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              తెలుగు వాక్యాలు (Telugu Sentences)
+            </Button>
+            <Button
+              variant={selectedExerciseType === 'english' ? 'default' : 'outline'}
+              onClick={() => handleExerciseTypeChange('english')}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              English Sentences
+            </Button>
+          </div>
+          <div className="mt-3 text-center text-sm text-gray-600">
+            {selectedExerciseType === 'all' ? 'All exercise types' : 
+             selectedExerciseType === 'telugu' ? 'Telugu to English exercises' : 
+             'English to Telugu exercises'}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Progress */}
       <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-orange-700">
             <span>Exercise Progress</span>
             <div className="flex items-center gap-2">
-              <Badge className={getDifficultyColor(currentExercise.difficulty)}>
-                {getDifficultyLabel(currentExercise.difficulty)}
-              </Badge>
+              {currentExercise && (
+                <Badge className={getDifficultyColor(currentExercise.difficulty)}>
+                  {getDifficultyLabel(currentExercise.difficulty)}
+                </Badge>
+              )}
               <Badge variant="outline" className="text-orange-700">
                 {currentExerciseIndex + 1} / {filteredExercises.length}
               </Badge>
