@@ -236,7 +236,10 @@ export default function TeluguHandwriting() {
     setIsCorrect(null);
     setShowAnswer(false);
     setCanvasData('');
-    clearCanvas();
+    // Only clear canvas if not currently drawing
+    if (!isDrawing) {
+      clearCanvas();
+    }
   };
 
   const nextExercise = () => {
@@ -636,8 +639,11 @@ export default function TeluguHandwriting() {
   };
 
   useEffect(() => {
-    resetExercise();
-  }, [currentExerciseIndex]);
+    // Only reset if not currently drawing
+    if (!isDrawing) {
+      resetExercise();
+    }
+  }, [currentExerciseIndex, isDrawing]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -655,6 +661,9 @@ export default function TeluguHandwriting() {
         const dpr = window.devicePixelRatio || 1;
         const maxWidth = Math.min(600, window.innerWidth - 40);
         
+        // Save current drawing as data URL before resizing
+        const currentDrawing = canvas.toDataURL();
+        
         // Set display size
         canvas.style.width = maxWidth + 'px';
         canvas.style.height = '200px';
@@ -670,6 +679,15 @@ export default function TeluguHandwriting() {
           ctx.lineWidth = 2;
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
+          
+          // Restore the drawing after resizing
+          if (currentDrawing && currentDrawing !== 'data:,') {
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, maxWidth, 200);
+            };
+            img.src = currentDrawing;
+          }
         }
         
         console.log('📱 Canvas resized:', {
