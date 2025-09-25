@@ -420,19 +420,25 @@ export default function TeluguSpelling() {
     
     setIsPlaying(true);
     
-    // Use the same direct approach that works
+    // Use Google Geeta voice specifically
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = 'hi-IN'; // Use Hindi language code for Telugu
-    utterance.rate = 0.6;
-    utterance.pitch = 1.0;
+    utterance.lang = 'te-IN'; // Use Telugu language code
+    utterance.rate = 0.75;
+    utterance.pitch = 1.1;
     
-    // Find Hindi voice
+    // Find Google Geeta voice
     const voices = window.speechSynthesis.getVoices();
-    const hindiVoice = voices.find(v => v.lang.startsWith('hi'));
+    const geetaVoice = voices.find(voice => 
+      voice.name.toLowerCase().includes('geeta') || 
+      voice.name.toLowerCase().includes('google geeta') ||
+      (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('geeta'))
+    );
     
-    if (hindiVoice) {
-      utterance.voice = hindiVoice;
-      console.log('✅ Using Hindi voice for Telugu:', hindiVoice.name);
+    if (geetaVoice) {
+      utterance.voice = geetaVoice;
+      console.log('🎤 Using Google Geeta voice for Telugu:', geetaVoice.name);
+    } else {
+      console.log('⚠️ Google Geeta voice not found, using default Telugu voice');
     }
     
     utterance.onstart = () => {

@@ -282,6 +282,21 @@ const TeluguUnitManager = ({ currentMilestone, isStudentView = false }: TeluguUn
       utterance.rate = 0.75;
       utterance.pitch = 1.1;
       
+      // Use Google Geeta voice specifically
+      const voices = window.speechSynthesis.getVoices();
+      const geetaVoice = voices.find(voice => 
+        voice.name.toLowerCase().includes('geeta') || 
+        voice.name.toLowerCase().includes('google') ||
+        (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('telugu'))
+      );
+      
+      if (geetaVoice) {
+        utterance.voice = geetaVoice;
+        console.log('🎤 Using Google Geeta voice:', geetaVoice.name);
+      } else {
+        console.log('⚠️ Google Geeta voice not found, using default Telugu voice');
+      }
+      
       window.speechSynthesis.speak(utterance);
     }
   };

@@ -551,19 +551,31 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
       const chunks = splitTextIntoChunks(text, 260);
       console.log(`🧩 Prepared ${chunks.length} chunk(s) for speech`);
       
-      // Enhanced voice selection for mobile compatibility
+      // Use Google Geeta voice specifically
       let selectedVoice = null;
       
       // Log all available voices for debugging
       console.log('🎤 All available voices:', voices.map(v => `${v.name} (${v.lang}) - ${v.localService ? 'local' : 'remote'}`));
       
-      // Priority 1: Telugu voice (preferred)
-      selectedVoice = voices.find(v => v.lang === 'te-IN');
+      // Priority 1: Google Geeta voice (preferred)
+      selectedVoice = voices.find(voice => 
+        voice.name.toLowerCase().includes('geeta') || 
+        voice.name.toLowerCase().includes('google geeta') ||
+        (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('geeta'))
+      );
       if (selectedVoice) {
-        console.log('✅ Found Telugu voice:', selectedVoice.name);
+        console.log('✅ Found Google Geeta voice:', selectedVoice.name);
       }
       
-      // Priority 2: Hindi voices (good for Telugu on mobile)
+      // Priority 2: Any Telugu voice (fallback)
+      if (!selectedVoice) {
+        selectedVoice = voices.find(v => v.lang === 'te-IN');
+        if (selectedVoice) {
+          console.log('✅ Found Telugu voice:', selectedVoice.name);
+        }
+      }
+      
+      // Priority 3: Hindi voices (good for Telugu on mobile)
       if (!selectedVoice) {
         selectedVoice = voices.find(v => 
           v.lang.startsWith('hi') || 
@@ -575,27 +587,7 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
         }
       }
       
-      // Priority 3: Indian English (often works well on mobile)
-      if (!selectedVoice) {
-        selectedVoice = voices.find(v => 
-          v.lang === 'en-IN' || 
-          v.name.toLowerCase().includes('india') ||
-          v.name.toLowerCase().includes('indian')
-        );
-        if (selectedVoice) {
-          console.log('✅ Found Indian English voice:', selectedVoice.name);
-        }
-      }
-      
-      // Priority 4: Any English voice (fallback)
-      if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang.startsWith('en'));
-        if (selectedVoice) {
-          console.log('✅ Found English voice:', selectedVoice.name);
-        }
-      }
-      
-      // Priority 5: Any available voice (last resort)
+      // Priority 4: Any available voice (last resort)
       if (!selectedVoice && voices.length > 0) {
         selectedVoice = voices[0];
         console.log('⚠️ Using fallback voice:', selectedVoice.name);
@@ -623,11 +615,11 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
         
         if (selectedVoice) {
           utterance.voice = selectedVoice as SpeechSynthesisVoice;
-          utterance.lang = selectedVoice.lang;
+          utterance.lang = 'te-IN'; // Always use Telugu language code
           console.log('🎤 Using voice:', selectedVoice.name, `(${selectedVoice.lang})`);
         } else {
-          utterance.lang = 'hi-IN';
-          console.log('⚠️ No voice selected, using Hindi language code');
+          utterance.lang = 'te-IN';
+          console.log('⚠️ No voice selected, using Telugu language code');
         }
         
         // Mobile-optimized speech settings

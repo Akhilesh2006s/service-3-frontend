@@ -41,11 +41,8 @@ export default function TeluguHandwriting() {
   const [isLoadingUploaded, setIsLoadingUploaded] = useState(false);
   const [canvasData, setCanvasData] = useState<string>('');
   const [isDrawing, setIsDrawing] = useState(false);
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isPremiumOCRLoading, setIsPremiumOCRLoading] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState<{x: number, y: number} | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
@@ -55,20 +52,7 @@ export default function TeluguHandwriting() {
   const toggleFullScreen = () => {
     const newFullScreenState = !isFullScreen;
     setIsFullScreen(newFullScreenState);
-    
-    if (newFullScreenState) {
-      // Request landscape orientation for better writing experience
-      if (screen.orientation && 'lock' in screen.orientation) {
-        (screen.orientation as any).lock('landscape').catch((err: any) => {
-          console.log('Could not lock orientation:', err);
-        });
-      }
-    } else {
-      // Unlock orientation when exiting full-screen
-      if (screen.orientation && 'unlock' in screen.orientation) {
-        (screen.orientation as any).unlock();
-      }
-    }
+    console.log('🖥️ Toggling full screen:', newFullScreenState);
   };
 
   // Convert uploaded exercises to HandwritingExercise format
@@ -179,63 +163,6 @@ export default function TeluguHandwriting() {
     loadProgress();
     fetchUploadedExercises();
     
-    // Load speech synthesis voices
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      console.log('🔊 Loaded voices:', voices.length);
-      setAvailableVoices(voices);
-      
-      voices.forEach((voice, index) => {
-        console.log(`🔊 Voice ${index}: ${voice.name} (${voice.lang})`);
-      });
-      
-      // Auto-select best voice
-      const teluguVoice = voices.find(voice => 
-        voice.lang.includes('te') || 
-        voice.lang.includes('telugu') ||
-        voice.name.toLowerCase().includes('telugu')
-      );
-      
-      if (teluguVoice) {
-        console.log('🔊 Auto-selected Telugu voice:', teluguVoice.name);
-        setSelectedVoice(teluguVoice);
-      } else {
-        // Try Indian English voice as fallback
-        const indianVoice = voices.find(voice => 
-          voice.lang.includes('en-IN') || 
-          voice.name.toLowerCase().includes('india')
-        );
-        if (indianVoice) {
-          console.log('🔊 Auto-selected Indian English voice:', indianVoice.name);
-          setSelectedVoice(indianVoice);
-        } else {
-          // Try to find a good English voice for Telugu pronunciation
-          const goodEnglishVoices = voices.filter(voice => 
-            voice.lang.includes('en') && 
-            (voice.name.toLowerCase().includes('microsoft') || 
-             voice.name.toLowerCase().includes('windows') ||
-             voice.name.toLowerCase().includes('sapi'))
-          );
-          
-          if (goodEnglishVoices.length > 0) {
-            console.log('🔊 Auto-selected good English voice for Telugu:', goodEnglishVoices[0].name);
-            setSelectedVoice(goodEnglishVoices[0]);
-          } else {
-            // Use first available voice
-            if (voices.length > 0) {
-              console.log('🔊 Auto-selected first available voice:', voices[0].name);
-              setSelectedVoice(voices[0]);
-            }
-          }
-        }
-      }
-    };
-    
-    // Load voices immediately and when they change
-    loadVoices();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
   }, []);
 
   const saveProgress = async (isCorrect: boolean) => {
@@ -345,12 +272,19 @@ export default function TeluguHandwriting() {
       utterance.pitch = 1;
       utterance.volume = 1;
       
-      // Use the selected voice
-      if (selectedVoice) {
-        console.log('🔊 Using selected voice:', selectedVoice.name, selectedVoice.lang);
-        utterance.voice = selectedVoice;
+      // Use Google Geeta voice specifically
+      const voices = window.speechSynthesis.getVoices();
+      const geetaVoice = voices.find(voice => 
+        voice.name.toLowerCase().includes('geeta') || 
+        voice.name.toLowerCase().includes('google geeta') ||
+        (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('geeta'))
+      );
+      
+      if (geetaVoice) {
+        utterance.voice = geetaVoice;
+        console.log('🔊 Using Google Geeta voice:', geetaVoice.name);
       } else {
-        console.log('🔊 No voice selected, using default');
+        console.log('⚠️ Google Geeta voice not found, using default Telugu voice');
       }
       
       utterance.onstart = () => {
@@ -438,8 +372,6 @@ export default function TeluguHandwriting() {
     if (!canvas) return { x: 0, y: 0 };
     
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
     
     let clientX, clientY;
     
@@ -453,14 +385,27 @@ export default function TeluguHandwriting() {
       clientY = e.clientY;
     }
     
-    return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY
-    };
+    // FIXED: Use proper scaling for responsive canvas
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
+    
+    console.log('🎯 Position calculation:', {
+      clientX, clientY,
+      rectLeft: rect.left, rectTop: rect.top,
+      rectWidth: rect.width, rectHeight: rect.height,
+      canvasWidth: canvas.width, canvasHeight: canvas.height,
+      scaleX, scaleY,
+      finalX: x, finalY: y
+    });
+    
+    return { x, y };
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    e.preventDefault(); // Prevent scrolling on mobile
+    // Note: preventDefault removed - using touchAction: 'none' in canvas style instead
     console.log('🎨 Starting to draw, setting isDrawing to true');
     setIsDrawing(true);
     const canvas = canvasRef.current;
@@ -469,7 +414,6 @@ export default function TeluguHandwriting() {
       if (ctx) {
         const pos = getEventPos(e);
         console.log('🎨 Start drawing at:', pos);
-        setCursorPosition(pos); // Track cursor position
         ctx.beginPath();
         ctx.moveTo(pos.x, pos.y);
       }
@@ -477,14 +421,13 @@ export default function TeluguHandwriting() {
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    e.preventDefault(); // Prevent scrolling on mobile
+    // Note: preventDefault removed - using touchAction: 'none' in canvas style instead
     
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         const pos = getEventPos(e);
-        setCursorPosition(pos); // Always update cursor position
         
         if (isDrawing) {
           // Only draw if we're actually drawing
@@ -496,28 +439,17 @@ export default function TeluguHandwriting() {
   };
 
   // Track finger/stylus position even when not drawing
-  const trackCursor = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const pos = getEventPos(e);
-    setCursorPosition(pos);
-  };
 
   const stopDrawing = (e?: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (e) e.preventDefault();
+    // Note: preventDefault removed - using touchAction: 'none' in canvas style instead
     console.log('🛑 Stopping drawing, setting isDrawing to false');
     setIsDrawing(false);
-    // Keep cursor position visible - don't clear it
   };
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    // Show cursor when mouse enters canvas
-    const pos = getEventPos(e);
-    setCursorPosition(pos);
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    // Hide cursor when mouse leaves canvas
-    setCursorPosition(null);
     // Only stop drawing if we're actually drawing
     if (isDrawing) {
       stopDrawing(e);
@@ -563,7 +495,7 @@ export default function TeluguHandwriting() {
 
     const handleGlobalTouchMove = (e: TouchEvent) => {
       if (isDrawing) {
-        e.preventDefault(); // Prevent scrolling
+        // Note: preventDefault removed - using touchAction: 'none' in canvas style instead
         const canvas = canvasRef.current;
         if (canvas && e.touches.length > 0) {
           const ctx = canvas.getContext('2d');
@@ -608,7 +540,7 @@ export default function TeluguHandwriting() {
     if (!canvas) return;
 
     const handlePassiveTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
+      // Note: preventDefault removed - using touchAction: 'none' in canvas style instead
       if (e.touches.length > 0) {
         const touch = e.touches[0];
         const rect = canvas.getBoundingClientRect();
@@ -616,7 +548,6 @@ export default function TeluguHandwriting() {
           x: touch.clientX - rect.left,
           y: touch.clientY - rect.top
         };
-        setCursorPosition(pos);
       }
     };
 
@@ -1297,33 +1228,33 @@ export default function TeluguHandwriting() {
         ctx.lineJoin = 'round';
       }
       
-      // Handle mobile canvas sizing with better mobile optimization
+      // Handle mobile canvas sizing - FIXED for proper mobile layout
       const handleResize = () => {
         const dpr = window.devicePixelRatio || 1;
         const isMobile = window.innerWidth <= 768;
         
-        // Better mobile sizing - use more screen space, especially in full-screen mode
+        // FIXED: Proper mobile sizing without overflow
         let maxWidth, height;
         if (isFullScreen) {
-          // Full-screen landscape mode - use almost entire screen
-          maxWidth = window.innerWidth - 20; // Use almost full width
-          height = window.innerHeight - 100; // Use almost full height for landscape writing
+          // Full-screen landscape mode
+          maxWidth = window.innerWidth - 20;
+          height = window.innerHeight - 100;
         } else {
-          // Make canvas much bigger in normal mode too, especially for mobile
-          maxWidth = isMobile ? Math.min(window.innerWidth - 10, 600) : Math.min(800, window.innerWidth - 40);
-          height = isMobile ? 500 : 300; // Much taller canvas for mobile writing
+          // FIXED: Mobile-first responsive sizing
+          maxWidth = isMobile ? window.innerWidth - 40 : Math.min(800, window.innerWidth - 40);
+          height = isMobile ? 300 : 300; // Fixed height to prevent overflow
         }
         
         // Only resize if the size actually changed
         const currentDisplayWidth = parseInt(canvas.style.width) || 800;
-        const currentDisplayHeight = parseInt(canvas.style.height) || 400;
+        const currentDisplayHeight = parseInt(canvas.style.height) || 300;
         
         if (Math.abs(currentDisplayWidth - maxWidth) < 10 && Math.abs(currentDisplayHeight - height) < 10) {
           console.log('📱 Canvas size unchanged, skipping resize');
           return;
         }
         
-        console.log('📱 Resizing canvas from', currentDisplayWidth + 'x' + currentDisplayHeight, 'to', maxWidth + 'x' + height);
+        console.log('📱 FIXED: Resizing canvas from', currentDisplayWidth + 'x' + currentDisplayHeight, 'to', maxWidth + 'x' + height);
         
         // Save current drawing as data URL before resizing
         const currentDrawing = canvas.toDataURL();
@@ -1350,7 +1281,7 @@ export default function TeluguHandwriting() {
             const img = new Image();
             img.onload = () => {
               console.log('📱 Restoring drawing after resize');
-              ctx.drawImage(img, 0, 0, maxWidth, 200);
+              ctx.drawImage(img, 0, 0, maxWidth, height);
             };
             img.onerror = () => {
               console.error('📱 Failed to restore drawing after resize');
@@ -1361,7 +1292,7 @@ export default function TeluguHandwriting() {
         
         console.log('📱 Canvas resized:', {
           displayWidth: maxWidth,
-          displayHeight: 200,
+          displayHeight: height,
           actualWidth: canvas.width,
           actualHeight: canvas.height,
           dpr: dpr
@@ -1408,30 +1339,36 @@ export default function TeluguHandwriting() {
 
   return (
     <>
-      {/* Full-screen landscape mode styles */}
+      {/* Full-screen mode styles - NO LANDSCAPE ROTATION */}
       {isFullScreen && (
         <style>
           {`
-            .landscape-mode {
-              transform: rotate(0deg);
-            }
-            @media screen and (orientation: portrait) {
-              .landscape-mode {
-                transform: rotate(90deg);
-                transform-origin: center center;
-                width: 100vh;
-                height: 100vw;
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                margin-left: -50vh;
-                margin-top: -50vw;
-              }
+            .fullscreen-mode {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100vw;
+              height: 100vh;
+              z-index: 9999;
+              background: white;
             }
           `}
         </style>
       )}
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-6xl">
+      
+      {/* FIXED: Prevent horizontal scrolling */}
+      <style>
+        {`
+          body {
+            overflow-x: hidden !important;
+          }
+          .container {
+            max-width: 100% !important;
+            overflow-x: hidden !important;
+          }
+        `}
+      </style>
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-6xl overflow-x-hidden">
       {/* Header */}
       <div className="text-center mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Telugu Handwriting Practice</h1>
@@ -1502,29 +1439,12 @@ export default function TeluguHandwriting() {
               <h3 className="text-lg font-semibold mb-4">Listen to the word</h3>
               
 
-              {/* Voice Selector */}
-              {availableVoices.length > 0 && (
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Voice:
-                  </label>
-                  <select
-                    value={selectedVoice?.name || ''}
-                    onChange={(e) => {
-                      const voice = availableVoices.find(v => v.name === e.target.value);
-                      setSelectedVoice(voice || null);
-                      console.log('🔊 Voice changed to:', voice?.name);
-                    }}
-                    className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {availableVoices.map((voice, index) => (
-                      <option key={index} value={voice.name}>
-                        {voice.name} ({voice.lang})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              {/* Google Geeta Voice Info */}
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  🔊 Using: <strong>Google Geeta (te-IN)</strong> for Telugu pronunciation
+                </p>
+              </div>
               
               <Button
                 onClick={playAudio}
@@ -1535,33 +1455,12 @@ export default function TeluguHandwriting() {
                 {isPlaying ? 'Playing...' : !currentExercise ? 'Loading...' : 'Play Audio'}
               </Button>
               
-              {selectedVoice && (
-                <p className="text-xs text-gray-600 mt-2">
-                  Using: {selectedVoice.name} ({selectedVoice.lang})
-                </p>
-              )}
-              
-              {!availableVoices.some(voice => voice.lang.includes('te')) && (
-                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <p className="text-xs text-yellow-800">
-                    <strong>💡 Tip:</strong> Telugu language is installed in Chrome but TTS voices may need Windows installation. Try clicking "Relaunch" in Chrome language settings, then check Windows Settings → Time & Language → Speech → Text-to-speech for Telugu voices.
-                  </p>
-                </div>
-              )}
-              
-              {availableVoices.some(voice => voice.lang.includes('te')) && (
-                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
-                  <p className="text-xs text-green-800">
-                    <strong>✅ Great!</strong> Telugu voices are available. The audio should work perfectly now!
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
           {/* Canvas Section */}
           <div className="mb-6">
-            <div className={`bg-gray-50 rounded-lg p-4 md:p-6 ${isFullScreen ? 'fixed inset-0 z-50 bg-white landscape-mode' : ''}`}>
+            <div className={`bg-gray-50 rounded-lg p-4 md:p-6 ${isFullScreen ? 'fullscreen-mode' : ''}`}>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Write the word here</h3>
                 <Button
@@ -1575,14 +1474,14 @@ export default function TeluguHandwriting() {
               </div>
               
               {/* Mobile-friendly writing area */}
-              <div className="relative">
-                <div className={`border-2 border-dashed border-gray-300 rounded-lg p-1 md:p-4 overflow-x-auto bg-white ${isFullScreen ? 'h-[calc(100vh-80px)] w-full' : ''}`}>
-                  <div className={`relative ${isFullScreen ? 'h-full' : 'inline-block'}`}>
+              <div className="relative mb-4">
+                <div className={`border-2 border-dashed border-gray-300 rounded-lg p-2 md:p-4 bg-white ${isFullScreen ? 'h-[calc(100vh-80px)] w-full' : 'w-full'}`}>
+                  <div className={`relative w-full ${isFullScreen ? 'h-full' : ''}`}>
                     <canvas
                       ref={canvasRef}
                       width={800}
-                      height={400}
-                      className={`border border-gray-200 rounded bg-white cursor-crosshair touch-none w-full max-w-full block ${isFullScreen ? 'h-full' : ''}`}
+                      height={300}
+                      className="border border-gray-200 rounded bg-white cursor-crosshair touch-none"
                       onMouseDown={startDrawing}
                       onMouseMove={draw}
                       onMouseUp={stopDrawing}
@@ -1591,55 +1490,14 @@ export default function TeluguHandwriting() {
                       onTouchStart={startDrawing}
                       onTouchMove={draw}
                       onTouchEnd={stopDrawing}
-                      onTouchMoveCapture={trackCursor}
                       style={{ 
                         touchAction: 'none',
+                        width: '100%',
+                        height: isFullScreen ? '100%' : '300px',
                         maxWidth: '100%',
-                        height: isFullScreen ? '100%' : 'auto',
-                        minHeight: isFullScreen ? '100%' : '400px',
-                        width: isFullScreen ? '100%' : 'auto'
+                        display: 'block'
                       }}
                     />
-                    
-                    {/* Finger/Stylus cursor indicator */}
-                    {cursorPosition && (
-                      <div 
-                        className="absolute pointer-events-none z-20"
-                        style={{
-                          left: `${cursorPosition.x}px`,
-                          top: `${cursorPosition.y}px`,
-                          transform: 'translate(-50%, -50%)'
-                        }}
-                      >
-                        {/* Main finger/stylus dot */}
-                        <div 
-                          className="w-3 h-3 bg-red-500 rounded-full animate-pulse"
-                          style={{
-                            boxShadow: '0 0 12px rgba(239, 68, 68, 0.9), 0 0 24px rgba(239, 68, 68, 0.5)',
-                            border: '2px solid white'
-                          }}
-                        />
-                        {/* Writing trail line */}
-                        <div 
-                          className="absolute w-1 h-12 bg-red-500 rounded-full opacity-80"
-                          style={{
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, -100%)',
-                            boxShadow: '0 0 6px rgba(239, 68, 68, 0.7)'
-                          }}
-                        />
-                        {/* Outer ring for better visibility */}
-                        <div 
-                          className="absolute w-6 h-6 border-2 border-red-400 rounded-full opacity-50 animate-ping"
-                          style={{
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, -50%)'
-                          }}
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
                 
@@ -1647,12 +1505,13 @@ export default function TeluguHandwriting() {
                 {!isFullScreen && (
                   <div className="mt-2 text-center">
                     <p className="text-sm text-gray-600">
-                      📱 <strong>Mobile tip:</strong> Write with your finger or stylus. The red dot shows where you're writing.
+                      📱 <strong>Mobile tip:</strong> Write with your finger or stylus directly on the canvas.
                     </p>
                   </div>
                 )}
               </div>
-              <div className="flex flex-col sm:flex-row justify-center gap-2 mt-4">
+              {/* Only Clear button on canvas board */}
+              <div className="flex justify-center mt-4">
                 <Button
                   onClick={() => clearCanvas(true)}
                   variant="outline"
@@ -1662,11 +1521,15 @@ export default function TeluguHandwriting() {
                   <Eraser className="w-4 h-4 mr-2" />
                   Clear
                 </Button>
+              </div>
+              
+              {/* Other buttons below canvas */}
+              <div className="flex flex-col sm:flex-row justify-center gap-2 mt-4 mb-4">
                 <Button
                   onClick={toggleFullScreen}
                   variant="outline"
                   size="sm"
-                  className="w-full sm:w-auto md:hidden"
+                  className="w-full sm:w-auto"
                 >
                   {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
                 </Button>
