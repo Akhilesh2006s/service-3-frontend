@@ -143,31 +143,6 @@ export default function TeluguHandwriting() {
     fetchUploadedExercises();
   }, []);
 
-  // If no exercises available, show message
-  if (filteredExercises.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-center text-gray-600">No Handwriting Exercises Available</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-500 mb-4">
-              No handwriting exercises are available at the moment. Please check back later or contact your trainer.
-            </p>
-            <Button 
-              onClick={() => window.location.reload()} 
-              variant="outline"
-              className="mt-4"
-            >
-              Refresh Page
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const saveProgress = async (isCorrect: boolean) => {
     if (!user) return;
     
@@ -322,6 +297,31 @@ export default function TeluguHandwriting() {
   useEffect(() => {
     resetExercise();
   }, [currentExerciseIndex]);
+
+  // If no exercises available, show message
+  if (filteredExercises.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center text-gray-600">No Handwriting Exercises Available</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-gray-500 mb-4">
+              No handwriting exercises are available at the moment. Please check back later or contact your trainer.
+            </p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+              className="mt-4"
+            >
+              Refresh Page
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
