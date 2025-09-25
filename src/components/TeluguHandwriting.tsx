@@ -431,6 +431,55 @@ export default function TeluguHandwriting() {
     setIsDrawing(false);
   };
 
+  const handleMouseLeave = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // Only stop drawing if we're actually drawing
+    if (isDrawing) {
+      stopDrawing(e);
+    }
+  };
+
+  // Add global mouse event listeners to handle drawing outside canvas
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDrawing) {
+        setIsDrawing(false);
+      }
+    };
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (isDrawing) {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+            
+            // Only draw if coordinates are within canvas bounds
+            if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
+              ctx.lineTo(x, y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+    };
+
+    if (isDrawing) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDrawing]);
+
   const analyzeHandwriting = () => {
     if (!currentExercise) return;
     
@@ -766,7 +815,6 @@ export default function TeluguHandwriting() {
                   onMouseDown={startDrawing}
                   onMouseMove={draw}
                   onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
                   onTouchStart={startDrawing}
                   onTouchMove={draw}
                   onTouchEnd={stopDrawing}
