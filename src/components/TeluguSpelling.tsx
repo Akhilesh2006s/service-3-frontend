@@ -50,7 +50,7 @@ export default function TeluguSpelling() {
       teluguWord: exercise.teluguWord,
       englishMeaning: exercise.englishMeaning,
       difficulty: exercise.difficulty as 'easy' | 'medium' | 'hard',
-      letters: exercise.letters.original,
+      letters: exercise.letters.jumbled, // Use jumbled letters instead of original
       correctOrder: exercise.letters.correctOrder,
       explanation: `Form the word "${exercise.teluguWord}" (${exercise.englishMeaning}) by selecting the correct letters in order.`,
       isUploaded: true
