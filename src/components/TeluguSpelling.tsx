@@ -57,8 +57,8 @@ export default function TeluguSpelling() {
     }));
   };
 
-  // Combine hardcoded and uploaded exercises
-  const allExercises = [...spellingExercises, ...convertUploadedToSpellingExercises(uploadedExercises)];
+  // Use only uploaded exercises (remove hardcoded ones)
+  const allExercises = convertUploadedToSpellingExercises(uploadedExercises);
 
   // Filter exercises based on difficulty
   const filteredExercises = selectedDifficulty === 'all' 
@@ -715,11 +715,6 @@ export default function TeluguSpelling() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-700 text-base sm:text-lg">
               <span>Listen and Spell</span>
-              {(currentExercise as any)?.isUploaded && (
-                <Badge variant="secondary" className="text-xs">
-                  Uploaded
-                </Badge>
-              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4">
