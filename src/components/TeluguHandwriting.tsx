@@ -41,6 +41,8 @@ export default function TeluguHandwriting() {
   const [isLoadingUploaded, setIsLoadingUploaded] = useState(false);
   const [canvasData, setCanvasData] = useState<string>('');
   const [isDrawing, setIsDrawing] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -146,9 +148,39 @@ export default function TeluguHandwriting() {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       console.log('🔊 Loaded voices:', voices.length);
+      setAvailableVoices(voices);
+      
       voices.forEach((voice, index) => {
         console.log(`🔊 Voice ${index}: ${voice.name} (${voice.lang})`);
       });
+      
+      // Auto-select best voice
+      const teluguVoice = voices.find(voice => 
+        voice.lang.includes('te') || 
+        voice.lang.includes('telugu') ||
+        voice.name.toLowerCase().includes('telugu')
+      );
+      
+      if (teluguVoice) {
+        console.log('🔊 Auto-selected Telugu voice:', teluguVoice.name);
+        setSelectedVoice(teluguVoice);
+      } else {
+        // Try Indian English voice as fallback
+        const indianVoice = voices.find(voice => 
+          voice.lang.includes('en-IN') || 
+          voice.name.toLowerCase().includes('india')
+        );
+        if (indianVoice) {
+          console.log('🔊 Auto-selected Indian English voice:', indianVoice.name);
+          setSelectedVoice(indianVoice);
+        } else {
+          // Use first available voice
+          if (voices.length > 0) {
+            console.log('🔊 Auto-selected first available voice:', voices[0].name);
+            setSelectedVoice(voices[0]);
+          }
+        }
+      }
     };
     
     // Load voices immediately and when they change
@@ -247,30 +279,12 @@ export default function TeluguHandwriting() {
       utterance.pitch = 1;
       utterance.volume = 1;
       
-      // Try to get Telugu voice if available
-      const voices = window.speechSynthesis.getVoices();
-      console.log('🔊 Available voices:', voices.length);
-      
-      const teluguVoice = voices.find(voice => 
-        voice.lang.includes('te') || 
-        voice.lang.includes('telugu') ||
-        voice.name.toLowerCase().includes('telugu')
-      );
-      
-      if (teluguVoice) {
-        console.log('🔊 Using Telugu voice:', teluguVoice.name, teluguVoice.lang);
-        utterance.voice = teluguVoice;
+      // Use the selected voice
+      if (selectedVoice) {
+        console.log('🔊 Using selected voice:', selectedVoice.name, selectedVoice.lang);
+        utterance.voice = selectedVoice;
       } else {
-        console.log('🔊 No Telugu voice found, using default');
-        // Try Indian English voice as fallback
-        const indianVoice = voices.find(voice => 
-          voice.lang.includes('en-IN') || 
-          voice.name.toLowerCase().includes('india')
-        );
-        if (indianVoice) {
-          console.log('🔊 Using Indian English voice:', indianVoice.name);
-          utterance.voice = indianVoice;
-        }
+        console.log('🔊 No voice selected, using default');
       }
       
       utterance.onstart = () => {
@@ -517,6 +531,31 @@ export default function TeluguHandwriting() {
           <div className="mb-6 text-center">
             <div className="bg-blue-50 rounded-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Listen to the word</h3>
+              
+              {/* Voice Selector */}
+              {availableVoices.length > 0 && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Voice:
+                  </label>
+                  <select
+                    value={selectedVoice?.name || ''}
+                    onChange={(e) => {
+                      const voice = availableVoices.find(v => v.name === e.target.value);
+                      setSelectedVoice(voice || null);
+                      console.log('🔊 Voice changed to:', voice?.name);
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {availableVoices.map((voice, index) => (
+                      <option key={index} value={voice.name}>
+                        {voice.name} ({voice.lang})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
               <Button
                 onClick={playAudio}
                 disabled={isPlaying || !currentExercise}
@@ -525,6 +564,12 @@ export default function TeluguHandwriting() {
                 <Volume2 className="w-4 h-4 mr-2" />
                 {isPlaying ? 'Playing...' : !currentExercise ? 'Loading...' : 'Play Audio'}
               </Button>
+              
+              {selectedVoice && (
+                <p className="text-xs text-gray-600 mt-2">
+                  Using: {selectedVoice.name} ({selectedVoice.lang})
+                </p>
+              )}
             </div>
           </div>
 
