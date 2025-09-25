@@ -48,6 +48,7 @@ import TeluguDictation from "@/components/TeluguDictation";
 
 import TeluguSentenceFormation from "@/components/TeluguSentenceFormation";
 import TeluguSpelling from "@/components/TeluguSpelling";
+import TeluguHandwriting from "@/components/TeluguHandwriting";
 import VoiceExaminationInterface from "@/components/VoiceExaminationInterface";
 
 
@@ -1065,6 +1066,11 @@ const LearnerDashboard = () => {
                   <span className="hidden sm:inline">వర్ణమాల</span>
                   <span className="sm:hidden">వర్ణమాల</span>
                 </TabsTrigger>
+                <TabsTrigger key="telugu-handwriting" value="telugu-handwriting" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
+                  <Type className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">హ్యాండ్ రైటింగ్</span>
+                  <span className="sm:hidden">రైటింగ్</span>
+                </TabsTrigger>
                 <TabsTrigger key="voice-examinations" value="voice-examinations" className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 hover:bg-primary/10 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-md mx-0.5 sm:mx-1">
                   <Volume2 className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Voice Examinations</span>
@@ -1508,6 +1514,10 @@ const LearnerDashboard = () => {
 
               <TabsContent value="telugu-spelling" className="space-y-4">
                 <TeluguSpelling />
+              </TabsContent>
+
+              <TabsContent value="telugu-handwriting" className="space-y-4">
+                <TeluguHandwriting />
               </TabsContent>
 
               <TabsContent value="voice-examinations" className="space-y-4">

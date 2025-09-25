@@ -19,6 +19,7 @@ import VoiceExaminationCreator from "@/components/VoiceExaminationCreator";
 import DictationExerciseManager from "@/components/DictationExerciseManager";
 import TeluguVakyaManager from "@/components/TeluguVakyaManager";
 import VarnamalaManager from "@/components/VarnamalaManager";
+import HandwritingManager from "@/components/HandwritingManager";
 
 
 
@@ -1016,6 +1017,10 @@ const TrainerDashboard = () => {
             <Type className="w-4 h-4" />
             Varnamala
           </TabsTrigger>
+          <TabsTrigger value="handwriting" className="flex items-center gap-2">
+            <Type className="w-4 h-4" />
+            Handwriting
+          </TabsTrigger>
           <TabsTrigger value="students" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Students
@@ -1853,6 +1858,10 @@ const TrainerDashboard = () => {
 
       <TabsContent value="varnamala" className="space-y-4">
         <VarnamalaManager />
+      </TabsContent>
+
+      <TabsContent value="handwriting" className="space-y-4">
+        <HandwritingManager />
       </TabsContent>
 
         <TabsContent value="students" className="space-y-4">
