@@ -75,15 +75,28 @@ export default function HandwritingManager() {
       console.log('Upload response:', response.status, result);
       console.log('Response headers:', response.headers);
       console.log('Full response:', response);
+      console.log('🔍 Detailed result:', JSON.stringify(result, null, 2));
 
       if (response.ok && result.success) {
-        toast({
-          title: "Upload Successful",
-          description: `${result.data.processedCount} handwriting exercises uploaded successfully.`,
-        });
+        console.log('✅ Upload successful, processedCount:', result.data?.processedCount);
+        console.log('📊 Debug info:', result.data?.debug);
+        
+        if (result.data?.processedCount === 0) {
+          toast({
+            title: "Upload Warning",
+            description: "File uploaded but 0 exercises were processed. Check console for details.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Upload Successful",
+            description: `${result.data.processedCount} handwriting exercises uploaded successfully.`,
+          });
+        }
         setSelectedFile(null);
         fetchExercises();
       } else {
+        console.log('❌ Upload failed:', result);
         toast({
           title: "Upload Failed",
           description: result.message || "Failed to upload CSV file.",
