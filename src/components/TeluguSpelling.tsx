@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -43,30 +43,122 @@ export default function TeluguSpelling() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Convert uploaded exercises to SpellingExercise format
-  const convertUploadedToSpellingExercises = (uploaded: UploadedVarnamalaExercise[]): SpellingExercise[] => {
-    return uploaded.map(exercise => ({
-      id: exercise._id,
-      teluguWord: exercise.teluguWord,
-      englishMeaning: exercise.englishMeaning,
-      difficulty: exercise.difficulty as 'easy' | 'medium' | 'hard',
-      letters: exercise.letters.jumbled, // Use jumbled letters instead of original
-      correctOrder: exercise.letters.correctOrder,
-      explanation: `Form the word "${exercise.teluguWord}" (${exercise.englishMeaning}) by selecting the correct letters in order.`,
-      isUploaded: true
-    }));
+  // Function to reorder letters for proper Telugu character formation
+  // Apply the specific pattern: 1,4,2,3,5,6,7,8 (dhirgas before consonants)
+  const reorderLettersForDhirgas = (letters: string[], correctOrder: number[]): { letters: string[], correctOrder: number[] } => {
+    // Apply the specific reordering pattern: 1,4,2,3,5,6,7,8
+    // This means: position 1, then position 4, then position 2, then position 3, etc.
+    
+    const reorderedLetters: string[] = [];
+    const newCorrectOrder: number[] = [];
+    
+    // Create the reordering pattern: 1,4,2,3,5,6,7,8 (0-indexed: 0,3,1,2,4,5,6,7)
+    const reorderPattern = [0, 3, 1, 2, 4, 5, 6, 7];
+    
+    // Apply the reordering pattern
+    for (let i = 0; i < Math.min(reorderPattern.length, letters.length); i++) {
+      const newIndex = reorderPattern[i];
+      if (newIndex < letters.length) {
+        reorderedLetters.push(letters[newIndex]);
+        newCorrectOrder.push(newIndex);
+      }
+    }
+    
+    // Add any remaining letters that weren't covered by the pattern
+    for (let i = reorderPattern.length; i < letters.length; i++) {
+      reorderedLetters.push(letters[i]);
+      newCorrectOrder.push(i);
+    }
+    
+    // Update correctOrder to reflect new positions
+    const updatedCorrectOrder = correctOrder.map(originalIndex => {
+      return newCorrectOrder.indexOf(originalIndex);
+    });
+    
+    // Only log when debugging is needed
+    if (reorderedLetters.length <= 10) { // Only log for reasonable length exercises
+      console.log('🔄 Final letter order:', reorderedLetters.join(' '));
+    }
+    
+    return { letters: reorderedLetters, correctOrder: updatedCorrectOrder };
   };
 
-  // Use only uploaded exercises (remove hardcoded ones)
-  const allExercises = convertUploadedToSpellingExercises(uploadedExercises);
+  // Convert uploaded exercises to SpellingExercise format
+  const convertUploadedToSpellingExercises = (uploaded: UploadedVarnamalaExercise[]): SpellingExercise[] => {
+    return uploaded.map(exercise => {
+      // Don't apply reordering here - do it only for the current exercise
+      return {
+        id: parseInt(exercise._id) || Math.random() * 1000, // Convert string to number
+        englishWord: exercise.englishMeaning, // Use englishMeaning as englishWord
+        teluguWord: exercise.teluguWord,
+        audio: exercise.teluguWord, // Use teluguWord as audio
+        letters: exercise.letters.jumbled, // Use original letters
+        correctOrder: exercise.letters.correctOrder, // Use original correct order
+        hint: `Start with the first letter`,
+        explanation: `Form the word "${exercise.teluguWord}" (${exercise.englishMeaning}) by selecting the correct letters in order.`,
+        difficulty: exercise.difficulty as 'easy' | 'medium' | 'hard'
+      };
+    });
+  };
+
+  // Use uploaded exercises, with fallback to hardcoded exercises
+  const uploadedExercisesList = convertUploadedToSpellingExercises(uploadedExercises);
+  
+  // Fallback exercises if no uploaded exercises are available
+  const fallbackExercises: SpellingExercise[] = [
+    {
+      id: 1,
+      englishWord: "Museum",
+      teluguWord: "మ్యూజియం",
+      audio: "మ్యూజియం",
+      letters: ["మ", "్", "య", "ూ", "జి", "య", "ం"],
+      correctOrder: [0, 1, 2, 3, 4, 5, 6],
+      hint: "Start with the first letter",
+      explanation: "Form the word 'మ్యూజియం' (Museum) by selecting the correct letters in order.",
+      difficulty: "medium" as 'easy' | 'medium' | 'hard'
+    },
+    {
+      id: 2,
+      englishWord: "Bank",
+      teluguWord: "బ్యాంకు",
+      audio: "బ్యాంకు",
+      letters: ["బ", "్", "య", "ా", "ం", "క", "ు"],
+      correctOrder: [0, 1, 2, 3, 4, 5, 6],
+      hint: "Start with the first letter",
+      explanation: "Form the word 'బ్యాంకు' (Bank) by selecting the correct letters in order.",
+      difficulty: "medium" as 'easy' | 'medium' | 'hard'
+    }
+  ];
+  
+  const allExercises = uploadedExercisesList.length > 0 ? uploadedExercisesList : fallbackExercises;
+  
+  // Debug logging (reduced frequency)
+  if (uploadedExercises.length > 0) {
+    console.log('🔍 Loaded', uploadedExercises.length, 'exercises from backend');
+  }
 
   // Filter exercises based on difficulty
   const filteredExercises = selectedDifficulty === 'all' 
     ? allExercises 
     : allExercises.filter(ex => ex.difficulty === selectedDifficulty);
 
-  // Get current exercise
+  // Get current exercise with bounds checking
   const currentExercise = filteredExercises[currentExerciseIndex];
+  
+  // Debug logging for current exercise (reduced frequency)
+  if (currentExercise && selectedLetters.length === 0) { // Only log when no letters are selected
+    console.log('🔍 Current exercise:', currentExercise.teluguWord, '- Letters:', currentExercise.letters.join(' '));
+    console.log('🔍 Available letters:', availableLetters.join(' '));
+  }
+
+  // Fix out-of-bounds index
+  useEffect(() => {
+    if (filteredExercises.length > 0 && currentExerciseIndex >= filteredExercises.length) {
+      console.log('🔧 Fixing out-of-bounds index:', currentExerciseIndex, '-> 0');
+      setCurrentExerciseIndex(0);
+    }
+  }, [filteredExercises.length, currentExerciseIndex]);
+
 
   // Fetch uploaded Varnamala exercises
   const fetchUploadedExercises = async () => {
@@ -123,7 +215,12 @@ export default function TeluguSpelling() {
         const data = await response.json();
         if (data.success && data.data.spelling) {
           const progress = data.data.spelling;
-          setCurrentExerciseIndex(progress.currentIndex || 0);
+          const savedIndex = progress.currentIndex || 0;
+          
+          // Don't set the index immediately - let the useEffect handle bounds checking
+          // This prevents setting an invalid index before exercises are loaded
+          console.log('📊 Loaded progress - saved index:', savedIndex);
+          setCurrentExerciseIndex(savedIndex);
           setScore({
             correct: progress.totalScore || 0,
             total: progress.totalAttempts || 0
@@ -266,15 +363,12 @@ export default function TeluguSpelling() {
     }
   }, []);
 
-  useEffect(() => {
-    resetExercise();
-  }, [currentExerciseIndex]);
-
-  const resetExercise = () => {
+  const resetExercise = useCallback(() => {
     if (!currentExercise) return; // Guard clause to prevent errors
     
     setSelectedLetters([]);
-    setAvailableLetters([...currentExercise.letters]);
+    setAvailableLetters([...currentExercise.letters]); // Use original letters, no reordering here
+    
     setIsCorrect(null);
     setShowHint(false);
     setShowExplanation(false);
@@ -284,7 +378,28 @@ export default function TeluguSpelling() {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
-  };
+  }, [currentExercise]);
+
+  useEffect(() => {
+    if (currentExercise) {
+      // Apply reordering only to the current exercise
+      const reordered = reorderLettersForDhirgas(currentExercise.letters, currentExercise.correctOrder);
+      setAvailableLetters([...reordered.letters]);
+      
+      // Reset other states
+      setSelectedLetters([]);
+      setIsCorrect(null);
+      setShowHint(false);
+      setShowExplanation(false);
+      setShowAnswer(false);
+      setIsPlaying(false);
+      
+      // Stop any ongoing speech
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+  }, [currentExerciseIndex]); // Only depend on currentExerciseIndex
 
   const playAudio = () => {
     if (!currentExercise) return; // Guard clause
@@ -351,13 +466,20 @@ export default function TeluguSpelling() {
     if (!currentExercise) return; // Guard clause
     if (isCorrect !== null) return; // Don't allow changes after submission
     
-    // Find the letter in available letters
+    // Get the letter from the current exercise
     const letterToSelect = currentExercise.letters[letterIndex];
+    
+    // Find this letter in the available letters array
     const availableIndex = availableLetters.findIndex(letter => letter === letterToSelect);
     
     if (availableIndex !== -1) {
+      // Add to selected letters
       setSelectedLetters(prev => [...prev, letterIndex]);
+      // Remove from available letters
       setAvailableLetters(prev => prev.filter((_, index) => index !== availableIndex));
+      console.log('✅ Selected letter:', letterToSelect, 'at index:', letterIndex);
+    } else {
+      console.log('❌ Letter not found in available letters:', letterToSelect);
     }
   };
 
@@ -366,8 +488,13 @@ export default function TeluguSpelling() {
     if (isCorrect !== null) return; // Don't allow changes after submission
     
     const letterToRemove = currentExercise.letters[letterIndex];
+    
+    // Remove from selected letters
     setSelectedLetters(prev => prev.filter(index => index !== letterIndex));
+    // Add back to available letters
     setAvailableLetters(prev => [...prev, letterToRemove]);
+    
+    console.log('↩️ Deselected letter:', letterToRemove, 'at index:', letterIndex);
   };
 
   // Helper function to get correct spelling in component format
@@ -607,18 +734,15 @@ export default function TeluguSpelling() {
     if (!currentExercise) return; // Guard clause
     if (isCorrect !== null) return; // Don't allow shuffling after submission
     
-    const shuffled = [...currentExercise.letters].sort(() => Math.random() - 0.5);
-    setAvailableLetters(shuffled);
-    setSelectedLetters([]);
-  };
-
-  // Auto-shuffle on exercise load
-  useEffect(() => {
-    if (currentExercise) {
+    // Show warning before shuffling
+    if (confirm('Are you sure you want to shuffle the letters? This will reset your current progress on this exercise.')) {
       const shuffled = [...currentExercise.letters].sort(() => Math.random() - 0.5);
       setAvailableLetters(shuffled);
+      setSelectedLetters([]);
+      console.log('🔀 Letters shuffled');
     }
-  }, [currentExerciseIndex]);
+  };
+
 
   // Initialize speech synthesis on component mount
   useEffect(() => {
@@ -631,25 +755,41 @@ export default function TeluguSpelling() {
     };
   }, []);
 
-  // If no exercises available, show message
-  if (filteredExercises.length === 0) {
+  // If no exercises available or no current exercise, show message
+  if (filteredExercises.length === 0 || !currentExercise) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-center text-gray-600">No Varnamala Exercises Available</CardTitle>
+            <CardTitle className="text-center text-gray-600">
+              {filteredExercises.length === 0 ? 'No Varnamala Exercises Available' : 'Loading Exercise...'}
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-gray-500 mb-4">
-              No spelling exercises are available at the moment. Please check back later or contact your trainer.
+              {filteredExercises.length === 0 
+                ? 'No spelling exercises are available at the moment. Please check back later or contact your trainer.'
+                : `Please wait while the exercise loads... (Index: ${currentExerciseIndex}, Available: ${filteredExercises.length})`
+              }
             </p>
-            <Button 
-              onClick={() => window.location.reload()} 
-              variant="outline"
-              className="mt-4"
-            >
-              Refresh Page
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <Button 
+                onClick={() => window.location.reload()} 
+                variant="outline"
+                className="mt-4"
+              >
+                Refresh Page
+              </Button>
+              {filteredExercises.length > 0 && (
+                <Button 
+                  onClick={() => setCurrentExerciseIndex(0)} 
+                  variant="default"
+                  className="mt-4"
+                >
+                  Reset to First Exercise
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -742,8 +882,8 @@ export default function TeluguSpelling() {
           <CardTitle className="flex items-center justify-between text-orange-700">
             <span>Exercise Progress</span>
             <div className="flex items-center gap-2">
-              <Badge className={getDifficultyColor(currentExercise.difficulty)}>
-                {getDifficultyLabel(currentExercise.difficulty)}
+              <Badge className={getDifficultyColor(currentExercise?.difficulty || 'easy')}>
+                {getDifficultyLabel(currentExercise?.difficulty || 'easy')}
               </Badge>
                                            <Badge variant="outline" className="text-orange-700">
                 {currentExerciseIndex + 1} / {filteredExercises.length}
@@ -909,16 +1049,19 @@ export default function TeluguSpelling() {
               </div>
               
                              <div className="grid grid-cols-4 sm:flex sm:flex-wrap gap-2">
-                 {availableLetters.map((letter, index) => (
+                 {availableLetters.map((letter, availableIndex) => (
                    <Button
-                     key={`${letter}-${index}`}
+                     key={`${letter}-${availableIndex}`}
                      variant="outline"
                      size="sm"
                      onClick={() => {
                        // Find the letter in the original letters array
                        const letterIndex = currentExercise.letters.indexOf(letter);
                        if (letterIndex !== -1) {
+                         console.log('🖱️ Clicked letter:', letter, 'found at index:', letterIndex);
                          selectLetter(letterIndex);
+                       } else {
+                         console.log('❌ Letter not found in exercise letters:', letter);
                        }
                      }}
                      className="text-base sm:text-lg p-2 sm:p-4"

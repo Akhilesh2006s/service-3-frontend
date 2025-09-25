@@ -46,9 +46,30 @@ export default function TeluguHandwriting() {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isPremiumOCRLoading, setIsPremiumOCRLoading] = useState(false);
   const [cursorPosition, setCursorPosition] = useState<{x: number, y: number} | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Toggle full-screen mode for mobile
+  const toggleFullScreen = () => {
+    const newFullScreenState = !isFullScreen;
+    setIsFullScreen(newFullScreenState);
+    
+    if (newFullScreenState) {
+      // Request landscape orientation for better writing experience
+      if (screen.orientation && 'lock' in screen.orientation) {
+        (screen.orientation as any).lock('landscape').catch((err: any) => {
+          console.log('Could not lock orientation:', err);
+        });
+      }
+    } else {
+      // Unlock orientation when exiting full-screen
+      if (screen.orientation && 'unlock' in screen.orientation) {
+        (screen.orientation as any).unlock();
+      }
+    }
+  };
 
   // Convert uploaded exercises to HandwritingExercise format
   const convertUploadedToHandwritingExercises = (uploaded: UploadedHandwritingExercise[]): HandwritingExercise[] => {
@@ -456,17 +477,20 @@ export default function TeluguHandwriting() {
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
-    
     e.preventDefault(); // Prevent scrolling on mobile
+    
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         const pos = getEventPos(e);
-        setCursorPosition(pos); // Update cursor position while drawing
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
+        setCursorPosition(pos); // Always update cursor position
+        
+        if (isDrawing) {
+          // Only draw if we're actually drawing
+          ctx.lineTo(pos.x, pos.y);
+          ctx.stroke();
+        }
       }
     }
   };
@@ -475,10 +499,18 @@ export default function TeluguHandwriting() {
     if (e) e.preventDefault();
     console.log('🛑 Stopping drawing, setting isDrawing to false');
     setIsDrawing(false);
-    setCursorPosition(null); // Clear cursor position when stopping
+    // Keep cursor position visible - don't clear it
+  };
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // Show cursor when mouse enters canvas
+    const pos = getEventPos(e);
+    setCursorPosition(pos);
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // Hide cursor when mouse leaves canvas
+    setCursorPosition(null);
     // Only stop drawing if we're actually drawing
     if (isDrawing) {
       stopDrawing(e);
@@ -1237,9 +1269,16 @@ export default function TeluguHandwriting() {
         const dpr = window.devicePixelRatio || 1;
         const isMobile = window.innerWidth <= 768;
         
-        // Better mobile sizing - use more screen space
-        const maxWidth = isMobile ? Math.min(window.innerWidth - 20, 400) : Math.min(600, window.innerWidth - 40);
-        const height = isMobile ? 300 : 200; // Taller canvas for mobile
+        // Better mobile sizing - use more screen space, especially in full-screen mode
+        let maxWidth, height;
+        if (isFullScreen) {
+          // Full-screen landscape mode - use almost entire screen
+          maxWidth = window.innerWidth - 20; // Use almost full width
+          height = window.innerHeight - 100; // Use almost full height for landscape writing
+        } else {
+          maxWidth = isMobile ? Math.min(window.innerWidth - 20, 400) : Math.min(600, window.innerWidth - 40);
+          height = isMobile ? 300 : 200; // Taller canvas for mobile
+        }
         
         // Only resize if the size actually changed
         const currentDisplayWidth = parseInt(canvas.style.width) || 600;
@@ -1302,7 +1341,7 @@ export default function TeluguHandwriting() {
         window.removeEventListener('resize', handleResize);
       };
     }
-  }, [currentExercise]);
+  }, [currentExercise, isFullScreen]);
 
   useEffect(() => {
     resetExercise();
@@ -1334,7 +1373,31 @@ export default function TeluguHandwriting() {
   }
 
   return (
-    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-6xl">
+    <>
+      {/* Full-screen landscape mode styles */}
+      {isFullScreen && (
+        <style>
+          {`
+            .landscape-mode {
+              transform: rotate(0deg);
+            }
+            @media screen and (orientation: portrait) {
+              .landscape-mode {
+                transform: rotate(90deg);
+                transform-origin: center center;
+                width: 100vh;
+                height: 100vw;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                margin-left: -50vh;
+                margin-top: -50vw;
+              }
+            }
+          `}
+        </style>
+      )}
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-6xl">
       {/* Header */}
       <div className="text-center mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Telugu Handwriting Practice</h1>
@@ -1464,53 +1527,85 @@ export default function TeluguHandwriting() {
 
           {/* Canvas Section */}
           <div className="mb-6">
-            <div className="bg-gray-50 rounded-lg p-4 md:p-6">
-              <h3 className="text-lg font-semibold mb-4">Write the word here</h3>
+            <div className={`bg-gray-50 rounded-lg p-4 md:p-6 ${isFullScreen ? 'fixed inset-0 z-50 bg-white landscape-mode' : ''}`}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Write the word here</h3>
+                <Button
+                  onClick={toggleFullScreen}
+                  variant="outline"
+                  size="sm"
+                  className="md:hidden"
+                >
+                  {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
+                </Button>
+              </div>
               
               {/* Mobile-friendly writing area */}
               <div className="relative">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 md:p-4 overflow-x-auto bg-white">
-                  <div className="relative inline-block">
+                <div className={`border-2 border-dashed border-gray-300 rounded-lg p-2 md:p-4 overflow-x-auto bg-white ${isFullScreen ? 'h-[calc(100vh-80px)] w-full' : ''}`}>
+                  <div className={`relative ${isFullScreen ? 'h-full' : 'inline-block'}`}>
                     <canvas
                       ref={canvasRef}
                       width={600}
                       height={200}
-                      className="border border-gray-200 rounded bg-white cursor-crosshair touch-none w-full max-w-full block"
+                      className={`border border-gray-200 rounded bg-white cursor-crosshair touch-none w-full max-w-full block ${isFullScreen ? 'h-full' : ''}`}
                       onMouseDown={startDrawing}
                       onMouseMove={draw}
                       onMouseUp={stopDrawing}
+                      onMouseEnter={handleMouseEnter}
+                      onMouseLeave={handleMouseLeave}
                       onTouchStart={startDrawing}
                       onTouchMove={draw}
                       onTouchEnd={stopDrawing}
                       style={{ 
                         touchAction: 'none',
                         maxWidth: '100%',
-                        height: 'auto',
-                        minHeight: '200px'
+                        height: isFullScreen ? '100%' : 'auto',
+                        minHeight: isFullScreen ? '100%' : '200px',
+                        width: isFullScreen ? '100%' : 'auto'
                       }}
                     />
                     
-                    {/* Cursor indicator for mobile */}
+                    {/* Writing cursor indicator */}
                     {cursorPosition && (
                       <div 
-                        className="absolute w-3 h-3 bg-red-500 rounded-full pointer-events-none z-10 animate-pulse"
+                        className="absolute pointer-events-none z-10"
                         style={{
                           left: `${cursorPosition.x}px`,
                           top: `${cursorPosition.y}px`,
-                          transform: 'translate(-50%, -50%)',
-                          boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)'
+                          transform: 'translate(-50%, -50%)'
                         }}
-                      />
+                      >
+                        {/* Main cursor dot */}
+                        <div 
+                          className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"
+                          style={{
+                            boxShadow: '0 0 8px rgba(37, 99, 235, 0.8)'
+                          }}
+                        />
+                        {/* Writing trail line */}
+                        <div 
+                          className="absolute w-1 h-8 bg-blue-600 rounded-full opacity-70"
+                          style={{
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -100%)',
+                            boxShadow: '0 0 4px rgba(37, 99, 235, 0.6)'
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
                 
                 {/* Mobile writing guide */}
-                <div className="mt-2 text-center">
-                  <p className="text-sm text-gray-600">
-                    📱 <strong>Mobile tip:</strong> Write with your finger or stylus. The red dot shows where you're writing.
-                  </p>
-                </div>
+                {!isFullScreen && (
+                  <div className="mt-2 text-center">
+                    <p className="text-sm text-gray-600">
+                      📱 <strong>Mobile tip:</strong> Write with your finger or stylus. The red dot shows where you're writing.
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="flex flex-col sm:flex-row justify-center gap-2 mt-4">
                 <Button
@@ -1521,6 +1616,14 @@ export default function TeluguHandwriting() {
                 >
                   <Eraser className="w-4 h-4 mr-2" />
                   Clear
+                </Button>
+                <Button
+                  onClick={toggleFullScreen}
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto md:hidden"
+                >
+                  {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
                 </Button>
                 <Button
                   onClick={analyzeHandwriting}
@@ -1726,5 +1829,6 @@ export default function TeluguHandwriting() {
         </Card>
       )}
     </div>
+    </>
   );
 }

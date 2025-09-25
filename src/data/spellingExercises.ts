@@ -10,6 +10,41 @@ export interface SpellingExercise {
   difficulty: 'easy' | 'medium' | 'hard';
 }
 
+// Function to reorder letters so dhirgas come before consonants they modify
+// Pattern: 1,4,2,3,5,6,7,8 (dhirgas before consonants)
+function reorderLettersForDhirgas(letters: string[], correctOrder: number[]): { letters: string[], correctOrder: number[] } {
+  // Apply the specific reordering pattern: 1,4,2,3,5,6,7,8
+  // This means: position 1, then position 4 (dhirga), then position 2, then position 3, etc.
+  
+  const reorderedLetters: string[] = [];
+  const newCorrectOrder: number[] = [];
+  
+  // Create a mapping for the reordering pattern
+  const reorderPattern = [0, 3, 1, 2, 4, 5, 6, 7]; // 1,4,2,3,5,6,7,8 (0-indexed)
+  
+  // Apply the reordering pattern
+  for (let i = 0; i < Math.min(reorderPattern.length, letters.length); i++) {
+    const newIndex = reorderPattern[i];
+    if (newIndex < letters.length) {
+      reorderedLetters.push(letters[newIndex]);
+      newCorrectOrder.push(newIndex);
+    }
+  }
+  
+  // Add any remaining letters that weren't covered by the pattern
+  for (let i = reorderPattern.length; i < letters.length; i++) {
+    reorderedLetters.push(letters[i]);
+    newCorrectOrder.push(i);
+  }
+  
+  // Update correctOrder to reflect new positions
+  const updatedCorrectOrder = correctOrder.map(originalIndex => {
+    return newCorrectOrder.indexOf(originalIndex);
+  });
+  
+  return { letters: reorderedLetters, correctOrder: updatedCorrectOrder };
+}
+
 export const spellingExercises: SpellingExercise[] = [
   // EASY EXERCISES (1-40)
   {
@@ -645,8 +680,7 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Bank',
     teluguWord: 'బ్యాంకు',
     audio: 'బ్యాంకు',
-    letters: ['బ', '్య', 'ా', 'ం', 'క', 'ు', 'మ', 'ల', 'ర', 'ి', 'న', 'ా'],
-    correctOrder: [0, 1, 2, 3, 4, 5],
+    ...reorderLettersForDhirgas(['బ', '్య', 'ా', 'ం', 'క', 'ు', 'మ', 'ల', 'ర', 'ి', 'న', 'ా'], [0, 1, 2, 3, 4, 5]),
     hint: 'Start with బ (ba)',
     explanation: 'బ (ba) + య (ya) + ా (ā) + ం (sunnā) + క (ka) + ఉ (u) = బ్యాంకు (byāṃku)',
     difficulty: 'medium'
@@ -667,8 +701,7 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Business',
     teluguWord: 'వ్యాపారం',
     audio: 'వ్యాపారం',
-    letters: ['వ', '్య', 'ా', 'ప', 'ా', 'ర', 'ం', 'క', 'మ', 'ల', 'ి', 'ు'],
-    correctOrder: [0, 1, 2, 3, 4, 5, 6],
+    ...reorderLettersForDhirgas(['వ', '్య', 'ా', 'ప', 'ా', 'ర', 'ం', 'క', 'మ', 'ల', 'ి', 'ు'], [0, 1, 2, 3, 4, 5, 6]),
     hint: 'Start with వ (va)',
     explanation: 'వ (va) + య (ya) + ా (ā) + ప (pa) + ా (ā) + ర (ra) + ం (sunnā) = వ్యాపారం (vyāpāraṃ)',
     difficulty: 'medium'
@@ -865,8 +898,7 @@ export const spellingExercises: SpellingExercise[] = [
     englishWord: 'Office',
     teluguWord: 'కార్యాలయం',
     audio: 'కార్యాలయం',
-    letters: ['క', 'ా', 'ర', '్య', 'ా', 'ల', 'య', 'ం', 'మ', 'ల', 'ర', 'ి'],
-    correctOrder: [0, 1, 2, 3, 4, 5, 6, 7],
+    ...reorderLettersForDhirgas(['క', 'ా', 'ర', '్య', 'ా', 'ల', 'య', 'ం', 'మ', 'ల', 'ర', 'ి'], [0, 1, 2, 3, 4, 5, 6, 7]),
     hint: 'Start with క (ka)',
     explanation: 'క (ka) + ా (ā) + ర (ra) + య (ya) + ా (ā) + ల (la) + య (ya) + ం (sunnā) = కార్యాలయం (kāryālayam)',
     difficulty: 'medium'
