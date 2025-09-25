@@ -198,16 +198,58 @@ export default function TeluguHandwriting() {
   };
 
   const playAudio = () => {
-    if (!currentExercise) return;
+    console.log('🎤 playAudio called, currentExercise:', currentExercise);
     
-    if (isPlaying) return;
+    if (!currentExercise) {
+      console.log('❌ No current exercise available');
+      toast({
+        title: "No Exercise",
+        description: "Please wait for exercises to load.",
+        variant: "destructive"
+      });
+      return;
+    }
     
+    if (isPlaying) {
+      console.log('⏸️ Already playing audio');
+      return;
+    }
+    
+    console.log('🎤 Speaking Telugu word:', currentExercise.teluguWord);
     setIsPlaying(true);
-    const utterance = new SpeechSynthesisUtterance(currentExercise.teluguWord);
-    utterance.lang = 'te-IN';
-    utterance.onend = () => setIsPlaying(false);
-    utterance.onerror = () => setIsPlaying(false);
-    window.speechSynthesis.speak(utterance);
+    
+    try {
+      const utterance = new SpeechSynthesisUtterance(currentExercise.teluguWord);
+      utterance.lang = 'te-IN';
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      
+      utterance.onend = () => {
+        console.log('✅ Audio playback ended');
+        setIsPlaying(false);
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('❌ Audio playback error:', event);
+        setIsPlaying(false);
+        toast({
+          title: "Audio Error",
+          description: "Failed to play audio. Please try again.",
+          variant: "destructive"
+        });
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('❌ Speech synthesis error:', error);
+      setIsPlaying(false);
+      toast({
+        title: "Audio Error",
+        description: "Speech synthesis not supported in this browser.",
+        variant: "destructive"
+      });
+    }
   };
 
   const clearCanvas = () => {
@@ -395,11 +437,11 @@ export default function TeluguHandwriting() {
               <h3 className="text-lg font-semibold mb-4">Listen to the word</h3>
               <Button
                 onClick={playAudio}
-                disabled={isPlaying}
+                disabled={isPlaying || !currentExercise}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 <Volume2 className="w-4 h-4 mr-2" />
-                {isPlaying ? 'Playing...' : 'Play Audio'}
+                {isPlaying ? 'Playing...' : !currentExercise ? 'Loading...' : 'Play Audio'}
               </Button>
             </div>
           </div>
