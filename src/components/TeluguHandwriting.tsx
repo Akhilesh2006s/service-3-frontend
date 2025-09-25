@@ -43,6 +43,7 @@ export default function TeluguHandwriting() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -237,6 +238,7 @@ export default function TeluguHandwriting() {
     setIsCorrect(null);
     setShowAnswer(false);
     setCanvasData('');
+    setAnalysisResult(null);
     // Only clear canvas if not currently drawing
     if (!isDrawing) {
       console.log('🔄 Clearing canvas in resetExercise');
@@ -574,6 +576,9 @@ export default function TeluguHandwriting() {
     // Basic handwriting analysis
     const analysis = analyzeTeluguHandwriting(canvas, currentExercise.teluguWord);
     
+    // Store analysis result for display
+    setAnalysisResult(analysis);
+    
     // Debug logging
     console.log('🔍 Handwriting Analysis:', {
       correctWord: currentExercise.teluguWord,
@@ -581,7 +586,8 @@ export default function TeluguHandwriting() {
       pixelCount: analysis.analysis.pixelCount,
       expectedRange: analysis.analysis.expectedRange,
       isCorrect: analysis.isCorrect,
-      confidence: analysis.confidence
+      confidence: analysis.confidence,
+      detectedWord: analysis.detectedWord
     });
     
     setIsCorrect(analysis.isCorrect);
@@ -954,6 +960,31 @@ export default function TeluguHandwriting() {
                 <div className="text-gray-700">
                   <p><strong>Word:</strong> {currentExercise?.teluguWord}</p>
                   <p><strong>Meaning:</strong> {currentExercise?.englishMeaning}</p>
+                  
+                  {/* Analysis Details */}
+                  {analysisResult && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
+                      <h4 className="font-semibold text-gray-800 mb-2">🔍 System Analysis:</h4>
+                      <div className="text-sm space-y-1">
+                        <p><strong>What I think you wrote:</strong> 
+                          <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                            analysisResult.detectedWord === currentExercise?.teluguWord 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {analysisResult.detectedWord}
+                          </span>
+                        </p>
+                        <p><strong>Confidence:</strong> {Math.round(analysisResult.confidence * 100)}%</p>
+                        <p><strong>Pixels drawn:</strong> {analysisResult.analysis.pixelCount.toLocaleString()}</p>
+                        <p><strong>Expected range:</strong> {analysisResult.analysis.expectedRange[0].toLocaleString()} - {analysisResult.analysis.expectedRange[1].toLocaleString()} pixels</p>
+                        <p><strong>Word length:</strong> {analysisResult.analysis.wordLength} characters</p>
+                        <p className="text-xs text-gray-600 mt-2">
+                          💡 <strong>Note:</strong> This is a basic analysis. In a real system, we would use AI to recognize your actual Telugu handwriting.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
