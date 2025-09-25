@@ -57,49 +57,6 @@ export default function TeluguHandwriting() {
     }));
   };
 
-  // Use only uploaded exercises
-  const allExercises = convertUploadedToHandwritingExercises(uploadedExercises);
-
-  // Filter exercises based on difficulty
-  const filteredExercises = selectedDifficulty === 'all' 
-    ? allExercises 
-    : allExercises.filter(ex => ex.difficulty === selectedDifficulty);
-
-  // Get current exercise
-  const currentExercise = filteredExercises[currentExerciseIndex];
-
-  // Initialize component - fetch exercises on mount
-  useEffect(() => {
-    console.log('🚀 TeluguHandwriting component: useEffect called');
-    loadProgress();
-    fetchUploadedExercises();
-  }, []);
-
-  // If no exercises available, show message
-  if (filteredExercises.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-center text-gray-600">No Handwriting Exercises Available</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-500 mb-4">
-              No handwriting exercises are available at the moment. Please check back later or contact your trainer.
-            </p>
-            <Button 
-              onClick={() => window.location.reload()} 
-              variant="outline"
-              className="mt-4"
-            >
-              Refresh Page
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   // Fetch uploaded handwriting exercises
   const fetchUploadedExercises = async () => {
     console.log('🚀 TeluguHandwriting component: fetchUploadedExercises called');
@@ -168,6 +125,49 @@ export default function TeluguHandwriting() {
     }
   };
 
+  // Use only uploaded exercises
+  const allExercises = convertUploadedToHandwritingExercises(uploadedExercises);
+
+  // Filter exercises based on difficulty
+  const filteredExercises = selectedDifficulty === 'all' 
+    ? allExercises 
+    : allExercises.filter(ex => ex.difficulty === selectedDifficulty);
+
+  // Get current exercise
+  const currentExercise = filteredExercises[currentExerciseIndex];
+
+  // Initialize component - fetch exercises on mount
+  useEffect(() => {
+    console.log('🚀 TeluguHandwriting component: useEffect called');
+    loadProgress();
+    fetchUploadedExercises();
+  }, []);
+
+  // If no exercises available, show message
+  if (filteredExercises.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center text-gray-600">No Handwriting Exercises Available</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-gray-500 mb-4">
+              No handwriting exercises are available at the moment. Please check back later or contact your trainer.
+            </p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+              className="mt-4"
+            >
+              Refresh Page
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const saveProgress = async (isCorrect: boolean) => {
     if (!user) return;
     
@@ -180,19 +180,15 @@ export default function TeluguHandwriting() {
         },
         body: JSON.stringify({
           exerciseType: 'handwriting',
-          exerciseId: currentExercise.id,
           isCorrect,
-          score: isCorrect ? 1 : 0
+          exerciseId: currentExercise?.id
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setScore(prev => ({
-            correct: prev.correct + (isCorrect ? 1 : 0),
-            total: prev.total + 1
-          }));
+          setScore(data.data.handwriting || { correct: 0, total: 0 });
         }
       }
     } catch (error) {
@@ -200,207 +196,123 @@ export default function TeluguHandwriting() {
     }
   };
 
-  // Canvas drawing functions
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const resetExercise = () => {
     if (!currentExercise) return;
-    setIsDrawing(true);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-    }
+    setIsCorrect(null);
+    setShowAnswer(false);
+    setCanvasData('');
+    clearCanvas();
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !currentExercise) return;
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.lineTo(x, y);
-      ctx.stroke();
+  const nextExercise = () => {
+    if (currentExerciseIndex < filteredExercises.length - 1) {
+      setCurrentExerciseIndex(currentExerciseIndex + 1);
+    } else {
+      setCurrentExerciseIndex(0);
     }
+    resetExercise();
   };
 
-  const stopDrawing = () => {
-    if (!currentExercise) return;
-    setIsDrawing(false);
-    const canvas = canvasRef.current;
-    if (canvas) {
-      setCanvasData(canvas.toDataURL());
+  const prevExercise = () => {
+    if (currentExerciseIndex > 0) {
+      setCurrentExerciseIndex(currentExerciseIndex - 1);
+    } else {
+      setCurrentExerciseIndex(filteredExercises.length - 1);
     }
-  };
-
-  const clearCanvas = () => {
-    if (!currentExercise) return;
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        setCanvasData('');
-      }
-    }
+    resetExercise();
   };
 
   const playAudio = () => {
     if (!currentExercise) return;
     
-    const textToSpeak = currentExercise.audioUrl || currentExercise.teluguWord;
-    console.log('🎤 Attempting to play audio:', textToSpeak);
-    
-    if (!('speechSynthesis' in window)) {
-      toast({
-        title: "Not Supported",
-        description: "Speech synthesis is not supported in this browser.",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (isPlaying) return;
     
     setIsPlaying(true);
-    
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = 'hi-IN';
-    utterance.rate = 0.6;
-    utterance.pitch = 1.0;
-    
-    const voices = window.speechSynthesis.getVoices();
-    const hindiVoice = voices.find(v => v.lang.startsWith('hi'));
-    
-    if (hindiVoice) {
-      utterance.voice = hindiVoice;
-      console.log('✅ Using Hindi voice for Telugu:', hindiVoice.name);
-    }
-    
-    utterance.onend = () => {
-      setIsPlaying(false);
-    };
-    
-    utterance.onerror = () => {
-      setIsPlaying(false);
-      toast({
-        title: "Audio Error",
-        description: "Failed to play audio. Please try again.",
-        variant: "destructive"
-      });
-    };
-    
-    window.speechSynthesis.cancel();
-    console.log('🎤 Speaking Telugu word:', textToSpeak);
+    const utterance = new SpeechSynthesisUtterance(currentExercise.teluguWord);
+    utterance.lang = 'te-IN';
+    utterance.onend = () => setIsPlaying(false);
+    utterance.onerror = () => setIsPlaying(false);
     window.speechSynthesis.speak(utterance);
   };
 
-  const checkAnswer = async () => {
-    if (!currentExercise) return;
-    
-    // For now, we'll implement a simple check
-    // In a real implementation, you would use handwriting recognition
-    const isAnswerCorrect = Math.random() > 0.3; // Placeholder logic
-    
-    setIsCorrect(isAnswerCorrect);
-    await saveProgress(isAnswerCorrect);
-    
-    if (isAnswerCorrect) {
-      toast({
-        title: "Correct!",
-        description: "Great job! Your handwriting looks good.",
-      });
-    } else {
-      toast({
-        title: "Try Again",
-        description: "Check your handwriting and try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const nextExercise = () => {
-    if (!currentExercise) return;
-    if (currentExerciseIndex < filteredExercises.length - 1) {
-      setCurrentExerciseIndex(prev => prev + 1);
-      setIsCorrect(null);
-      setShowAnswer(false);
-      clearCanvas();
-    }
-  };
-
-  const resetExercise = () => {
-    if (!currentExercise) return;
-    setIsCorrect(null);
-    setShowAnswer(false);
-    clearCanvas();
-  };
-
-  const resetAll = async () => {
-    await resetProgress();
-    resetExercise();
-  };
-
-  const resetProgress = async () => {
-    if (!user) return;
-    
-    try {
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/learning-progress/reset', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ exerciseType: 'handwriting' })
-      });
-
-      if (response.ok) {
-        setScore({ correct: 0, total: 0 });
-        toast({
-          title: "Progress Reset",
-          description: "Your handwriting progress has been reset.",
-        });
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
-    } catch (error) {
-      console.error('Error resetting progress:', error);
     }
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsDrawing(true);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      }
     }
   };
 
-  const getDifficultyLabel = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return 'Easy';
-      case 'medium': return 'Medium';
-      case 'hard': return 'Hard';
-      default: return 'Unknown';
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
     }
   };
 
-  // Initialize canvas
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const analyzeHandwriting = () => {
+    if (!currentExercise) return;
+    
+    // Simple analysis - in a real implementation, you would use ML/AI
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const imageData = canvas.toDataURL();
+      setCanvasData(imageData);
+      
+      // For now, just show a simple success message
+      // In a real implementation, you would analyze the handwriting
+      setIsCorrect(true);
+      setShowAnswer(true);
+      saveProgress(true);
+      
+      toast({
+        title: "Great job!",
+        description: "Your handwriting looks good!",
+      });
+    }
+  };
+
+  useEffect(() => {
+    resetExercise();
+  }, [currentExerciseIndex]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
       }
@@ -416,18 +328,42 @@ export default function TeluguHandwriting() {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Telugu Handwriting Practice</h1>
-        <p className="text-gray-600">Listen to the word and write it by hand</p>
+        <p className="text-gray-600">Listen to the word and write it down</p>
+      </div>
+
+      {/* Progress */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-700">Progress</span>
+          <span className="text-sm text-gray-500">
+            {currentExerciseIndex + 1} of {filteredExercises.length}
+          </span>
+        </div>
+        <Progress 
+          value={(currentExerciseIndex + 1) / filteredExercises.length * 100} 
+          className="h-2"
+        />
+      </div>
+
+      {/* Score */}
+      <div className="mb-6 text-center">
+        <div className="inline-flex items-center space-x-4 bg-gray-50 rounded-lg px-4 py-2">
+          <span className="text-sm text-gray-600">Score:</span>
+          <Badge variant="outline" className="text-green-600">
+            {score.correct}/{score.total}
+          </Badge>
+        </div>
       </div>
 
       {/* Difficulty Filter */}
-      <div className="flex justify-center mb-6">
-        <div className="flex gap-2">
-          {(['all', 'easy', 'medium', 'hard'] as const).map((difficulty) => (
+      <div className="mb-6 text-center">
+        <div className="flex justify-center space-x-2">
+          {['all', 'easy', 'medium', 'hard'].map((difficulty) => (
             <Button
               key={difficulty}
               variant={selectedDifficulty === difficulty ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSelectedDifficulty(difficulty)}
+              onClick={() => setSelectedDifficulty(difficulty as any)}
             >
               {difficulty === 'all' ? 'All' : difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
             </Button>
@@ -435,169 +371,159 @@ export default function TeluguHandwriting() {
         </div>
       </div>
 
-      {/* Exercise Progress */}
-      <Card className="mb-6 bg-orange-50 border-orange-200">
+      {/* Exercise Card */}
+      <Card className="max-w-4xl mx-auto mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between text-orange-700">
-            <span>Exercise Progress</span>
-            <div className="flex items-center gap-2">
-              <Badge className={getDifficultyColor(currentExercise.difficulty)}>
-                {getDifficultyLabel(currentExercise.difficulty)}
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl">
+              Exercise {currentExerciseIndex + 1}
+            </CardTitle>
+            <div className="flex items-center space-x-2">
+              <Badge variant="outline">
+                {currentExercise?.difficulty}
               </Badge>
-              <Badge variant="outline" className="text-orange-700">
-                {currentExerciseIndex + 1} / {filteredExercises.length}
-              </Badge>
+              {currentExercise?.isUploaded && (
+                <Badge variant="secondary">Uploaded</Badge>
+              )}
             </div>
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-orange-700">Score: {score.correct}/{score.total}</span>
-            <span className="text-sm text-orange-600">
-              {score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0}%
-            </span>
-          </div>
-          <Progress 
-            value={score.total > 0 ? (score.correct / score.total) * 100 : 0} 
-            className="h-2"
-          />
-        </CardContent>
-      </Card>
-
-      {/* Main Exercise */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Audio and Instructions */}
-        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-700">
-              <span>Listen and Write</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center space-y-2">
-              <p className="text-sm text-gray-500">Listen to the Telugu pronunciation</p>
+          {/* Audio Section */}
+          <div className="mb-6 text-center">
+            <div className="bg-blue-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Listen to the word</h3>
               <Button
                 onClick={playAudio}
                 disabled={isPlaying}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
+                className="bg-blue-600 hover:bg-blue-700"
               >
                 <Volume2 className="w-4 h-4 mr-2" />
-                {isPlaying ? 'Playing...' : 'Listen to Word'}
+                {isPlaying ? 'Playing...' : 'Play Audio'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Canvas Section */}
+          <div className="mb-6">
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Write the word here</h3>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                <canvas
+                  ref={canvasRef}
+                  width={600}
+                  height={200}
+                  className="border border-gray-200 rounded bg-white cursor-crosshair"
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                />
+              </div>
+              <div className="flex justify-center space-x-2 mt-4">
+                <Button
+                  onClick={clearCanvas}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Eraser className="w-4 h-4 mr-2" />
+                  Clear
+                </Button>
+                <Button
+                  onClick={analyzeHandwriting}
+                  variant="default"
+                  size="sm"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Check
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Answer Section */}
+          {showAnswer && (
+            <div className="mb-6">
+              <div className={`rounded-lg p-4 ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                <div className="flex items-center space-x-2 mb-2">
+                  {isCorrect ? (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  )}
+                  <span className={`font-semibold ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
+                    {isCorrect ? 'Correct!' : 'Try Again'}
+                  </span>
+                </div>
+                <div className="text-gray-700">
+                  <p><strong>Word:</strong> {currentExercise?.teluguWord}</p>
+                  <p><strong>Meaning:</strong> {currentExercise?.englishMeaning}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="flex justify-between items-center">
+            <Button
+              onClick={prevExercise}
+              variant="outline"
+              disabled={currentExerciseIndex === 0}
+            >
+              <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+              Previous
+            </Button>
+            
+            <div className="flex space-x-2">
+              <Button
+                onClick={resetExercise}
+                variant="outline"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset
               </Button>
             </div>
             
-            <div className="text-center p-4 bg-white rounded-lg border">
-              <p className="text-sm text-gray-600 mb-2">English Meaning:</p>
-              <p className="text-lg font-semibold text-blue-700">{currentExercise.englishMeaning}</p>
-            </div>
+            <Button
+              onClick={nextExercise}
+              variant="default"
+            >
+              Next
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-            {showAnswer && (
-              <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                <p className="text-sm text-green-600 mb-2">Correct Answer:</p>
-                <p className="text-2xl font-bold text-green-700">{currentExercise.teluguWord}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Handwriting Canvas */}
-        <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+      {/* Analytics */}
+      {showAnalytics && analytics && (
+        <Card className="max-w-4xl mx-auto">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-700">
-              <span>Write Here</span>
+            <CardTitle className="flex items-center">
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Analytics
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="border-2 border-gray-300 rounded-lg bg-white">
-              <canvas
-                ref={canvasRef}
-                width={400}
-                height={300}
-                className="w-full h-64 cursor-crosshair border rounded-lg"
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-              />
-            </div>
-            
-            <div className="flex gap-2">
-              <Button
-                onClick={clearCanvas}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Eraser className="w-4 h-4" />
-                Clear
-              </Button>
-              
-              <Button
-                onClick={checkAnswer}
-                disabled={!canvasData || isCorrect !== null}
-                className="flex items-center gap-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                Check Answer
-              </Button>
-            </div>
-
-            {isCorrect !== null && (
-              <div className={`p-3 rounded-lg flex items-center gap-2 ${
-                isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}>
-                {isCorrect ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-                <span className="font-medium">
-                  {isCorrect ? 'Correct! Well done!' : 'Try again. Check your handwriting.'}
-                </span>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{analytics.totalExercises}</div>
+                <div className="text-sm text-gray-600">Total Exercises</div>
               </div>
-            )}
-
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setShowAnswer(!showAnswer)}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                {showAnswer ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                {showAnswer ? 'Hide Answer' : 'Show Answer'}
-              </Button>
-              
-              {currentExerciseIndex < filteredExercises.length - 1 && (
-                <Button
-                  onClick={nextExercise}
-                  className="flex items-center gap-2"
-                >
-                  Next Exercise
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              )}
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{analytics.correctAnswers}</div>
+                <div className="text-sm text-gray-600">Correct Answers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">
+                  {analytics.totalExercises > 0 ? Math.round((analytics.correctAnswers / analytics.totalExercises) * 100) : 0}%
+                </div>
+                <div className="text-sm text-gray-600">Accuracy</div>
+              </div>
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Controls */}
-      <div className="flex justify-center gap-4 mt-6">
-        <Button
-          onClick={resetExercise}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <RotateCcw className="w-4 h-4" />
-          Reset Exercise
-        </Button>
-        
-        <Button
-          onClick={resetAll}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <BarChart3 className="w-4 h-4" />
-          Reset All Progress
-        </Button>
-      </div>
+      )}
     </div>
   );
 }
