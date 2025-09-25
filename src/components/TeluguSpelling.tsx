@@ -72,9 +72,17 @@ export default function TeluguSpelling() {
   const fetchUploadedExercises = async () => {
     try {
       setIsLoadingUploaded(true);
+      const token = localStorage.getItem('telugu-basics-token');
+      
+      if (!token) {
+        console.log('No authentication token found, skipping uploaded exercises fetch');
+        setUploadedExercises([]);
+        return;
+      }
+
       const response = await fetch('https://service-3-backend-production.up.railway.app/api/csv-upload/exercises/varnamala?limit=100', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('telugu-basics-token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
 
@@ -83,9 +91,13 @@ export default function TeluguSpelling() {
         if (result.success) {
           setUploadedExercises(result.data || []);
         }
+      } else {
+        console.log('Failed to fetch uploaded exercises:', response.status, response.statusText);
+        setUploadedExercises([]);
       }
     } catch (error) {
       console.error('Error fetching uploaded exercises:', error);
+      setUploadedExercises([]);
     } finally {
       setIsLoadingUploaded(false);
     }
@@ -255,6 +267,8 @@ export default function TeluguSpelling() {
   }, [currentExerciseIndex]);
 
   const resetExercise = () => {
+    if (!currentExercise) return; // Guard clause to prevent errors
+    
     setSelectedLetters([]);
     setAvailableLetters([...currentExercise.letters]);
     setIsCorrect(null);
@@ -269,6 +283,8 @@ export default function TeluguSpelling() {
   };
 
   const playAudio = () => {
+    if (!currentExercise) return; // Guard clause
+    
     console.log('🎤 Attempting to play audio:', currentExercise.audio);
     
     // Check if speech synthesis is supported
@@ -326,6 +342,7 @@ export default function TeluguSpelling() {
   };
 
   const selectLetter = (letterIndex: number) => {
+    if (!currentExercise) return; // Guard clause
     if (isCorrect !== null) return; // Don't allow changes after submission
     
     // Find the letter in available letters
@@ -339,6 +356,7 @@ export default function TeluguSpelling() {
   };
 
   const deselectLetter = (letterIndex: number) => {
+    if (!currentExercise) return; // Guard clause
     if (isCorrect !== null) return; // Don't allow changes after submission
     
     const letterToRemove = currentExercise.letters[letterIndex];
@@ -524,6 +542,8 @@ export default function TeluguSpelling() {
   };
 
   const checkAnswer = async () => {
+    if (!currentExercise) return; // Guard clause
+    
     // Check if the final word formed matches the correct word
     const userWord = getFormedWord();
     const isAnswerCorrect = userWord === currentExercise.teluguWord;
@@ -578,6 +598,7 @@ export default function TeluguSpelling() {
   };
 
   const shuffleLetters = () => {
+    if (!currentExercise) return; // Guard clause
     if (isCorrect !== null) return; // Don't allow shuffling after submission
     
     const shuffled = [...currentExercise.letters].sort(() => Math.random() - 0.5);
