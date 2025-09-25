@@ -116,11 +116,13 @@ export default function TeluguHandwriting() {
 
       if (response.ok) {
         const result = await response.json();
+        console.log('📚 Learner handwriting exercises response:', result);
         if (result.success) {
           setUploadedExercises(result.data || []);
+          console.log('📚 Set uploaded exercises:', result.data?.length || 0);
         }
       } else {
-        console.log('Failed to fetch uploaded exercises:', response.status, response.statusText);
+        console.log('❌ Failed to fetch uploaded exercises:', response.status, response.statusText);
         setUploadedExercises([]);
       }
     } catch (error) {
