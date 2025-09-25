@@ -495,6 +495,13 @@ export default function TeluguHandwriting() {
     }
   };
 
+  // Track finger/stylus position even when not drawing
+  const trackCursor = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const pos = getEventPos(e);
+    setCursorPosition(pos);
+  };
+
   const stopDrawing = (e?: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (e) e.preventDefault();
     console.log('🛑 Stopping drawing, setting isDrawing to false');
@@ -594,6 +601,32 @@ export default function TeluguHandwriting() {
       document.removeEventListener('touchend', handleGlobalTouchEnd);
     };
   }, [isDrawing]);
+
+  // Add passive touch tracking for finger position
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handlePassiveTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length > 0) {
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const pos = {
+          x: touch.clientX - rect.left,
+          y: touch.clientY - rect.top
+        };
+        setCursorPosition(pos);
+      }
+    };
+
+    // Add passive touch move listener for finger tracking
+    canvas.addEventListener('touchmove', handlePassiveTouchMove, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('touchmove', handlePassiveTouchMove);
+    };
+  }, []);
 
   const analyzeHandwriting = async () => {
     if (!currentExercise) return;
@@ -1276,13 +1309,14 @@ export default function TeluguHandwriting() {
           maxWidth = window.innerWidth - 20; // Use almost full width
           height = window.innerHeight - 100; // Use almost full height for landscape writing
         } else {
-          maxWidth = isMobile ? Math.min(window.innerWidth - 20, 400) : Math.min(600, window.innerWidth - 40);
-          height = isMobile ? 300 : 200; // Taller canvas for mobile
+          // Make canvas much bigger in normal mode too, especially for mobile
+          maxWidth = isMobile ? Math.min(window.innerWidth - 10, 600) : Math.min(800, window.innerWidth - 40);
+          height = isMobile ? 500 : 300; // Much taller canvas for mobile writing
         }
         
         // Only resize if the size actually changed
-        const currentDisplayWidth = parseInt(canvas.style.width) || 600;
-        const currentDisplayHeight = parseInt(canvas.style.height) || 200;
+        const currentDisplayWidth = parseInt(canvas.style.width) || 800;
+        const currentDisplayHeight = parseInt(canvas.style.height) || 400;
         
         if (Math.abs(currentDisplayWidth - maxWidth) < 10 && Math.abs(currentDisplayHeight - height) < 10) {
           console.log('📱 Canvas size unchanged, skipping resize');
@@ -1542,12 +1576,12 @@ export default function TeluguHandwriting() {
               
               {/* Mobile-friendly writing area */}
               <div className="relative">
-                <div className={`border-2 border-dashed border-gray-300 rounded-lg p-2 md:p-4 overflow-x-auto bg-white ${isFullScreen ? 'h-[calc(100vh-80px)] w-full' : ''}`}>
+                <div className={`border-2 border-dashed border-gray-300 rounded-lg p-1 md:p-4 overflow-x-auto bg-white ${isFullScreen ? 'h-[calc(100vh-80px)] w-full' : ''}`}>
                   <div className={`relative ${isFullScreen ? 'h-full' : 'inline-block'}`}>
                     <canvas
                       ref={canvasRef}
-                      width={600}
-                      height={200}
+                      width={800}
+                      height={400}
                       className={`border border-gray-200 rounded bg-white cursor-crosshair touch-none w-full max-w-full block ${isFullScreen ? 'h-full' : ''}`}
                       onMouseDown={startDrawing}
                       onMouseMove={draw}
@@ -1557,40 +1591,51 @@ export default function TeluguHandwriting() {
                       onTouchStart={startDrawing}
                       onTouchMove={draw}
                       onTouchEnd={stopDrawing}
+                      onTouchMoveCapture={trackCursor}
                       style={{ 
                         touchAction: 'none',
                         maxWidth: '100%',
                         height: isFullScreen ? '100%' : 'auto',
-                        minHeight: isFullScreen ? '100%' : '200px',
+                        minHeight: isFullScreen ? '100%' : '400px',
                         width: isFullScreen ? '100%' : 'auto'
                       }}
                     />
                     
-                    {/* Writing cursor indicator */}
+                    {/* Finger/Stylus cursor indicator */}
                     {cursorPosition && (
                       <div 
-                        className="absolute pointer-events-none z-10"
+                        className="absolute pointer-events-none z-20"
                         style={{
                           left: `${cursorPosition.x}px`,
                           top: `${cursorPosition.y}px`,
                           transform: 'translate(-50%, -50%)'
                         }}
                       >
-                        {/* Main cursor dot */}
+                        {/* Main finger/stylus dot */}
                         <div 
-                          className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"
+                          className="w-3 h-3 bg-red-500 rounded-full animate-pulse"
                           style={{
-                            boxShadow: '0 0 8px rgba(37, 99, 235, 0.8)'
+                            boxShadow: '0 0 12px rgba(239, 68, 68, 0.9), 0 0 24px rgba(239, 68, 68, 0.5)',
+                            border: '2px solid white'
                           }}
                         />
                         {/* Writing trail line */}
                         <div 
-                          className="absolute w-1 h-8 bg-blue-600 rounded-full opacity-70"
+                          className="absolute w-1 h-12 bg-red-500 rounded-full opacity-80"
                           style={{
                             left: '50%',
                             top: '50%',
                             transform: 'translate(-50%, -100%)',
-                            boxShadow: '0 0 4px rgba(37, 99, 235, 0.6)'
+                            boxShadow: '0 0 6px rgba(239, 68, 68, 0.7)'
+                          }}
+                        />
+                        {/* Outer ring for better visibility */}
+                        <div 
+                          className="absolute w-6 h-6 border-2 border-red-400 rounded-full opacity-50 animate-ping"
+                          style={{
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)'
                           }}
                         />
                       </div>

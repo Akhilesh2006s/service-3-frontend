@@ -1,0 +1,368 @@
+[1mdiff --git a/src/components/TeluguHandwriting.tsx b/src/components/TeluguHandwriting.tsx[m
+[1mindex 525eb1e..8674405 100644[m
+[1m--- a/src/components/TeluguHandwriting.tsx[m
+[1m+++ b/src/components/TeluguHandwriting.tsx[m
+[36m@@ -46,10 +46,31 @@[m [mexport default function TeluguHandwriting() {[m
+   const [analysisResult, setAnalysisResult] = useState<any>(null);[m
+   const [isPremiumOCRLoading, setIsPremiumOCRLoading] = useState(false);[m
+   const [cursorPosition, setCursorPosition] = useState<{x: number, y: number} | null>(null);[m
+[32m+[m[32m  const [isFullScreen, setIsFullScreen] = useState(false);[m
+   const canvasRef = useRef<HTMLCanvasElement>(null);[m
+   const { toast } = useToast();[m
+   const { user } = useAuth();[m
+ [m
+[32m+[m[32m  // Toggle full-screen mode for mobile[m
+[32m+[m[32m  const toggleFullScreen = () => {[m
+[32m+[m[32m    const newFullScreenState = !isFullScreen;[m
+[32m+[m[32m    setIsFullScreen(newFullScreenState);[m
+[32m+[m[41m    [m
+[32m+[m[32m    if (newFullScreenState) {[m
+[32m+[m[32m      // Request landscape orientation for better writing experience[m
+[32m+[m[32m      if (screen.orientation && 'lock' in screen.orientation) {[m
+[32m+[m[32m        (screen.orientation as any).lock('landscape').catch((err: any) => {[m
+[32m+[m[32m          console.log('Could not lock orientation:', err);[m
+[32m+[m[32m        });[m
+[32m+[m[32m      }[m
+[32m+[m[32m    } else {[m
+[32m+[m[32m      // Unlock orientation when exiting full-screen[m
+[32m+[m[32m      if (screen.orientation && 'unlock' in screen.orientation) {[m
+[32m+[m[32m        (screen.orientation as any).unlock();[m
+[32m+[m[32m      }[m
+[32m+[m[32m    }[m
+[32m+[m[32m  };[m
+[32m+[m
+   // Convert uploaded exercises to HandwritingExercise format[m
+   const convertUploadedToHandwritingExercises = (uploaded: UploadedHandwritingExercise[]): HandwritingExercise[] => {[m
+     return uploaded.map(exercise => ({[m
+[36m@@ -456,17 +477,20 @@[m [mexport default function TeluguHandwriting() {[m
+   };[m
+ [m
+   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {[m
+[31m-    if (!isDrawing) return;[m
+[31m-    [m
+     e.preventDefault(); // Prevent scrolling on mobile[m
+[32m+[m[41m    [m
+     const canvas = canvasRef.current;[m
+     if (canvas) {[m
+       const ctx = canvas.getContext('2d');[m
+       if (ctx) {[m
+         const pos = getEventPos(e);[m
+[31m-        setCursorPosition(pos); // Update cursor position while drawing[m
+[31m-        ctx.lineTo(pos.x, pos.y);[m
+[31m-        ctx.stroke();[m
+[32m+[m[32m        setCursorPosition(pos); // Always update cursor position[m
+[32m+[m[41m        [m
+[32m+[m[32m        if (isDrawing) {[m
+[32m+[m[32m          // Only draw if we're actually drawing[m
+[32m+[m[32m          ctx.lineTo(pos.x, pos.y);[m
+[32m+[m[32m          ctx.stroke();[m
+[32m+[m[32m        }[m
+       }[m
+     }[m
+   };[m
+[36m@@ -475,10 +499,18 @@[m [mexport default function TeluguHandwriting() {[m
+     if (e) e.preventDefault();[m
+     console.log('🛑 Stopping drawing, setting isDrawing to false');[m
+     setIsDrawing(false);[m
+[31m-    setCursorPosition(null); // Clear cursor position when stopping[m
+[32m+[m[32m    // Keep cursor position visible - don't clear it[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const handleMouseEnter = (e: React.MouseEvent<HTMLCanvasElement>) => {[m
+[32m+[m[32m    // Show cursor when mouse enters canvas[m
+[32m+[m[32m    const pos = getEventPos(e);[m
+[32m+[m[32m    setCursorPosition(pos);[m
+   };[m
+ [m
+   const handleMouseLeave = (e: React.MouseEvent<HTMLCanvasElement>) => {[m
+[32m+[m[32m    // Hide cursor when mouse leaves canvas[m
+[32m+[m[32m    setCursorPosition(null);[m
+     // Only stop drawing if we're actually drawing[m
+     if (isDrawing) {[m
+       stopDrawing(e);[m
+[36m@@ -1237,9 +1269,16 @@[m [mexport default function TeluguHandwriting() {[m
+         const dpr = window.devicePixelRatio || 1;[m
+         const isMobile = window.innerWidth <= 768;[m
+         [m
+[31m-        // Better mobile sizing - use more screen space[m
+[31m-        const maxWidth = isMobile ? Math.min(window.innerWidth - 20, 400) : Math.min(600, window.innerWidth - 40);[m
+[31m-        const height = isMobile ? 300 : 200; // Taller canvas for mobile[m
+[32m+[m[32m        // Better mobile sizing - use more screen space, especially in full-screen mode[m
+[32m+[m[32m        let maxWidth, height;[m
+[32m+[m[32m        if (isFullScreen) {[m
+[32m+[m[32m          // Full-screen landscape mode - use almost entire screen[m
+[32m+[m[32m          maxWidth = window.innerWidth - 20; // Use almost full width[m
+[32m+[m[32m          height = window.innerHeight - 100; // Use almost full height for landscape writing[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m          maxWidth = isMobile ? Math.min(window.innerWidth - 20, 400) : Math.min(600, window.innerWidth - 40);[m
+[32m+[m[32m          height = isMobile ? 300 : 200; // Taller canvas for mobile[m
+[32m+[m[32m        }[m
+         [m
+         // Only resize if the size actually changed[m
+         const currentDisplayWidth = parseInt(canvas.style.width) || 600;[m
+[36m@@ -1302,7 +1341,7 @@[m [mexport default function TeluguHandwriting() {[m
+         window.removeEventListener('resize', handleResize);[m
+       };[m
+     }[m
+[31m-  }, [currentExercise]);[m
+[32m+[m[32m  }, [currentExercise, isFullScreen]);[m
+ [m
+   useEffect(() => {[m
+     resetExercise();[m
+[36m@@ -1334,7 +1373,31 @@[m [mexport default function TeluguHandwriting() {[m
+   }[m
+ [m
+   return ([m
+[31m-    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-6xl">[m
+[32m+[m[32m    <>[m
+[32m+[m[32m      {/* Full-screen landscape mode styles */}[m
+[32m+[m[32m      {isFullScreen && ([m
+[32m+[m[32m        <style>[m
+[32m+[m[32m          {`[m
+[32m+[m[32m            .landscape-mode {[m
+[32m+[m[32m              transform: rotate(0deg);[m
+[32m+[m[32m            }[m
+[32m+[m[32m            @media screen and (orientation: portrait) {[m
+[32m+[m[32m              .landscape-mode {[m
+[32m+[m[32m                transform: rotate(90deg);[m
+[32m+[m[32m                transform-origin: center center;[m
+[32m+[m[32m                width: 100vh;[m
+[32m+[m[32m                height: 100vw;[m
+[32m+[m[32m                position: fixed;[m
+[32m+[m[32m                top: 50%;[m
+[32m+[m[32m                left: 50%;[m
+[32m+[m[32m                margin-left: -50vh;[m
+[32m+[m[32m                margin-top: -50vw;[m
+[32m+[m[32m              }[m
+[32m+[m[32m            }[m
+[32m+[m[32m          `}[m
+[32m+[m[32m        </style>[m
+[32m+[m[32m      )}[m
+[32m+[m[32m      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-6xl">[m
+       {/* Header */}[m
+       <div className="text-center mb-6 sm:mb-8">[m
+         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Telugu Handwriting Practice</h1>[m
+[36m@@ -1464,53 +1527,85 @@[m [mexport default function TeluguHandwriting() {[m
+ [m
+           {/* Canvas Section */}[m
+           <div className="mb-6">[m
+[31m-            <div className="bg-gray-50 rounded-lg p-4 md:p-6">[m
+[31m-              <h3 className="text-lg font-semibold mb-4">Write the word here</h3>[m
+[32m+[m[32m            <div className={`bg-gray-50 rounded-lg p-4 md:p-6 ${isFullScreen ? 'fixed inset-0 z-50 bg-white landscape-mode' : ''}`}>[m
+[32m+[m[32m              <div className="flex justify-between items-center mb-4">[m
+[32m+[m[32m                <h3 className="text-lg font-semibold">Write the word here</h3>[m
+[32m+[m[32m                <Button[m
+[32m+[m[32m                  onClick={toggleFullScreen}[m
+[32m+[m[32m                  variant="outline"[m
+[32m+[m[32m                  size="sm"[m
+[32m+[m[32m                  className="md:hidden"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}[m
+[32m+[m[32m                </Button>[m
+[32m+[m[32m              </div>[m
+               [m
+               {/* Mobile-friendly writing area */}[m
+               <div className="relative">[m
+[31m-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 md:p-4 overflow-x-auto bg-white">[m
+[31m-                  <div className="relative inline-block">[m
+[32m+[m[32m                <div className={`border-2 border-dashed border-gray-300 rounded-lg p-2 md:p-4 overflow-x-auto bg-white ${isFullScreen ? 'h-[calc(100vh-80px)] w-full' : ''}`}>[m
+[32m+[m[32m                  <div className={`relative ${isFullScreen ? 'h-full' : 'inline-block'}`}>[m
+                     <canvas[m
+                       ref={canvasRef}[m
+                       width={600}[m
+                       height={200}[m
+[31m-                      className="border border-gray-200 rounded bg-white cursor-crosshair touch-none w-full max-w-full block"[m
+[32m+[m[32m                      className={`border border-gray-200 rounded bg-white cursor-crosshair touch-none w-full max-w-full block ${isFullScreen ? 'h-full' : ''}`}[m
+                       onMouseDown={startDrawing}[m
+                       onMouseMove={draw}[m
+                       onMouseUp={stopDrawing}[m
+[32m+[m[32m                      onMouseEnter={handleMouseEnter}[m
+[32m+[m[32m                      onMouseLeave={handleMouseLeave}[m
+                       onTouchStart={startDrawing}[m
+                       onTouchMove={draw}[m
+                       onTouchEnd={stopDrawing}[m
+                       style={{ [m
+                         touchAction: 'none',[m
+                         maxWidth: '100%',[m
+[31m-                        height: 'auto',[m
+[31m-                        minHeight: '200px'[m
+[32m+[m[32m                        height: isFullScreen ? '100%' : 'auto',[m
+[32m+[m[32m                        minHeight: isFullScreen ? '100%' : '200px',[m
+[32m+[m[32m                        width: isFullScreen ? '100%' : 'auto'[m
+                       }}[m
+                     />[m
+                     [m
+[31m-                    {/* Cursor indicator for mobile */}[m
+[32m+[m[32m                    {/* Writing cursor indicator */}[m
+                     {cursorPosition && ([m
+                       <div [m
+[31m-                        className="absolute w-3 h-3 bg-red-500 rounded-full pointer-events-none z-10 animate-pulse"[m
+[32m+[m[32m                        className="absolute pointer-events-none z-10"[m
+                         style={{[m
+                           left: `${cursorPosition.x}px`,[m
+                           top: `${cursorPosition.y}px`,[m
+[31m-                          transform: 'translate(-50%, -50%)',[m
+[31m-                          boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)'[m
+[32m+[m[32m                          transform: 'translate(-50%, -50%)'[m
+                         }}[m
+[31m-                      />[m
+[32m+[m[32m                      >[m
+[32m+[m[32m                        {/* Main cursor dot */}[m
+[32m+[m[32m                        <div[m[41m [m
+[32m+[m[32m                          className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"[m
+[32m+[m[32m                          style={{[m
+[32m+[m[32m                            boxShadow: '0 0 8px rgba(37, 99, 235, 0.8)'[m
+[32m+[m[32m                          }}[m
+[32m+[m[32m                        />[m
+[32m+[m[32m                        {/* Writing trail line */}[m
+[32m+[m[32m                        <div[m[41m [m
+[32m+[m[32m                          className="absolute w-1 h-8 bg-blue-600 rounded-full opacity-70"[m
+[32m+[m[32m                          style={{[m
+[32m+[m[32m                            left: '50%',[m
+[32m+[m[32m                            top: '50%',[m
+[32m+[m[32m                            transform: 'translate(-50%, -100%)',[m
+[32m+[m[32m                            boxShadow: '0 0 4px rgba(37, 99, 235, 0.6)'[m
+[32m+[m[32m                          }}[m
+[32m+[m[32m                        />[m
+[32m+[m[32m                      </div>[m
+                     )}[m
+                   </div>[m
+                 </div>[m
+                 [m
+                 {/* Mobile writing guide */}[m
+[31m-                <div className="mt-2 text-center">[m
+[31m-                  <p className="text-sm text-gray-600">[m
+[31m-                    📱 <strong>Mobile tip:</strong> Write with your finger or stylus. The red dot shows where you're writing.[m
+[31m-                  </p>[m
+[31m-                </div>[m
+[32m+[m[32m                {!isFullScreen && ([m
+[32m+[m[32m                  <div className="mt-2 text-center">[m
+[32m+[m[32m                    <p className="text-sm text-gray-600">[m
+[32m+[m[32m                      📱 <strong>Mobile tip:</strong> Write with your finger or stylus. The red dot shows where you're writing.[m
+[32m+[m[32m                    </p>[m
+[32m+[m[32m                  </div>[m
+[32m+[m[32m                )}[m
+               </div>[m
+               <div className="flex flex-col sm:flex-row justify-center gap-2 mt-4">[m
+                 <Button[m
+[36m@@ -1522,6 +1617,14 @@[m [mexport default function TeluguHandwriting() {[m
+                   <Eraser className="w-4 h-4 mr-2" />[m
+                   Clear[m
+                 </Button>[m
+[32m+[m[32m                <Button[m
+[32m+[m[32m                  onClick={toggleFullScreen}[m
+[32m+[m[32m                  variant="outline"[m
+[32m+[m[32m                  size="sm"[m
+[32m+[m[32m                  className="w-full sm:w-auto md:hidden"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}[m
+[32m+[m[32m                </Button>[m
+                 <Button[m
+                   onClick={analyzeHandwriting}[m
+                   variant="default"[m
+[36m@@ -1726,5 +1829,6 @@[m [mexport default function TeluguHandwriting() {[m
+         </Card>[m
+       )}[m
+     </div>[m
+[32m+[m[32m    </>[m
+   );[m
+ }[m
+\ No newline at end of file[m
+[1mdiff --git a/src/components/TeluguSpelling.tsx b/src/components/TeluguSpelling.tsx[m
+[1mindex b95492d..53f911e 100644[m
+[1m--- a/src/components/TeluguSpelling.tsx[m
+[1m+++ b/src/components/TeluguSpelling.tsx[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-import React, { useState, useEffect } from 'react';[m
+[32m+[m[32mimport React, { useState, useEffect, useCallback } from 'react';[m
+ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';[m
+ import { Button } from './ui/button';[m
+ import { Badge } from './ui/badge';[m
+[36m@@ -43,30 +43,122 @@[m [mexport default function TeluguSpelling() {[m
+   const { toast } = useToast();[m
+   const { user } = useAuth();[m
+ [m
+[32m+[m[32m  // Function to reorder letters for proper Telugu character formation[m
+[32m+[m[32m  // Apply the specific pattern: 1,4,2,3,5,6,7,8 (dhirgas before consonants)[m
+[32m+[m[32m  const reorderLettersForDhirgas = (letters: string[], correctOrder: number[]): { letters: string[], correctOrder: number[] } => {[m
+[32m+[m[32m    // Apply the specific reordering pattern: 1,4,2,3,5,6,7,8[m
+[32m+[m[32m    // This means: position 1, then position 4, then position 2, then position 3, etc.[m
+[32m+[m[41m    [m
+[32m+[m[32m    const reorderedLetters: string[] = [];[m
+[32m+[m[32m    const newCorrectOrder: number[] = [];[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Create the reordering pattern: 1,4,2,3,5,6,7,8 (0-indexed: 0,3,1,2,4,5,6,7)[m
+[32m+[m[32m    const reorderPattern = [0, 3, 1, 2, 4, 5, 6, 7];[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Apply the reordering pattern[m
+[32m+[m[32m    for (let i = 0; i < Math.min(reorderPattern.length, letters.length); i++) {[m
+[32m+[m[32m      const newIndex = reorderPattern[i];[m
+[32m+[m[32m      if (newIndex < letters.length) {[m
+[32m+[m[32m        reorderedLetters.push(letters[newIndex]);[m
+[32m+[m[32m        newCorrectOrder.push(newIndex);[m
+[32m+[m[32m      }[m
+[32m+[m[32m    }[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Add any remaining letters that weren't covered by the pattern[m
+[32m+[m[32m    for (let i = reorderPattern.length; i < letters.length; i++) {[m
+[32m+[m[32m      reorderedLetters.push(letters[i]);[m
+[32m+[m[32m      newCorrectOrder.push(i);[m
+[32m+[m[32m    }[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Update correctOrder to reflect new positions[m
+[32m+[m[32m    const updatedCorrectOrder = correctOrder.map(originalIndex => {[m
+[32m+[m[32m      return newCorrectOrder.indexOf(originalIndex);[m
+[32m+[m[32m    });[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Only log when debugging is needed[m
+[32m+[m[32m    if (reorderedLetters.length <= 10) { // Only log for reasonable length exercises[m
+[32m+[m[32m      console.log('🔄 Final letter order:', reorderedLetters.join(' '));[m
+[32m+[m[32m    }[m
+[32m+[m[41m    [m
+[32m+[m[32m    return { letters: reorderedLetters, correctOrder: updatedCorrectOrder };[m
+[32m+[m[32m  };[m
+[32m+[m
+   // Convert uploaded exercises to SpellingExercise format[m
+   const convertUploadedToSpellingExercises = (uploaded: UploadedVarnamalaExercise[]): SpellingExercise[] => {[m
+[31m-    return uploaded.map(exercise => ({[m
+[31m-      id: exercise._id,[m
+[31m-      teluguWord: exercise.teluguWord,[m
+[31m-      englishMeaning: exercise.englishMeaning,[m
+[31m-      difficulty: exercise.difficulty as 'easy' | 'medium' | 'hard',[m
+[31m-      letters: exercise.letters.jumbled, // Use jumbled letters instead of original[m
+[31m-      correctOrder: exercise.letters.correctOrder,[m
+[31m-      explanation: `Form the word "${exercise.teluguWord}" (${exercise.englishMeaning}) by selecting the correct letters in order.`,[m
+[31m-      isUploaded: true[m
+[31m-    }));[m
+[32m+[m[32m    return uploaded.map(exercise => {[m
+[32m+[m[32m      // Don't apply reordering here - do it only for the current exercise[m
+[32m+[m[32m      return {[m
+[32m+[m[32m        id: parseInt(exercise._id) || Math.random() * 1000, // Convert string to number[m
+[32m+[m[32m        englishWord: exercise.englishMeaning, // Use englishMeaning as englishWord[m
+[32m+[m[32m        teluguWord: exercise.teluguWord,[m
+[32m+[m[32m        audio: exercise.teluguWord, // Use teluguWord as audio[m
+[32m+[m[32m        letters: exercise.letters.jumbled, // Use original letters[m
+[32m+[m[32m        correctOrder: exercise.letters.correctOrder, // Use original correct order[m
+[32m+[m[32m        hint: `Start with the first letter`,[m
+[32m+[m[32m        explanation: `Form the word "${exercise.teluguWord}" (${exercise.englishMeaning}) by selecting the correct letters in order.`,[m
+[32m+[m[32m        difficulty: exercise.difficulty as 'easy' | 'medium' | 'hard'[m
+[32m+[m[32m      };[m
+[32m+[m[32m    });[m
+   };[m
+ [m
+[31m-  // Use only uploaded exercises (remove hardcoded ones)[m
+[31m-  const allExercises = convertUploadedToSpellingExercises(uploadedExercises);[m
+[32m+[m[32m  // Use uploaded exercises, with fallback to hardcoded exercises[m
+[32m+[m[32m  const uploadedExercisesList = convertUploadedToSpellingExercises(uploadedExercises);[m
+[32m+[m[41m  [m
+[32m+[m[32m  // Fallback exercises if no uploaded exercises are available[m
+[32m+[m[32m  const fallbackExercises: SpellingExercise[] = [[m
+[32m+[m[32m    {[m
+[32m+[m[32m      id: 1,[m
+[32m+[m[32m      englishWord: "Museum",[m
+[32m+[m[32m      teluguWord: "మ్యూజియం",[m
+[32m+[m[32m      audio: "మ్యూజియం",[m
+[32m+[m[32m      letters: ["మ", "్", "య", "ూ", "జి", "య", "ం"],[m
+[32m+[m[32m      correctOrder: [0, 1, 2, 3, 4, 5, 6],[m
+[32m+[m[32m      hint: "Start with the first letter",[m
+[32m+[m[32m      explanation: "Form the word 'మ్యూజియం' (Museum) by selecting the correct letter
