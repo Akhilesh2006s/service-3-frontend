@@ -57,6 +57,10 @@ export default function HandwritingManager() {
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('exerciseType', 'handwriting');
+      
+      console.log('📤 Uploading handwriting exercises...');
+      console.log('📁 File:', selectedFile.name, selectedFile.size, 'bytes');
+      console.log('🏷️ Exercise type: handwriting');
 
       const token = localStorage.getItem('telugu-basics-token');
       const response = await fetch('https://service-3-backend-production.up.railway.app/api/csv-upload/upload', {
@@ -69,6 +73,8 @@ export default function HandwritingManager() {
 
       const result = await response.json();
       console.log('Upload response:', response.status, result);
+      console.log('Response headers:', response.headers);
+      console.log('Full response:', response);
 
       if (response.ok && result.success) {
         toast({
