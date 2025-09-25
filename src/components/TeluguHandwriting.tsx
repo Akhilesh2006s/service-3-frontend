@@ -174,10 +174,23 @@ export default function TeluguHandwriting() {
           console.log('🔊 Auto-selected Indian English voice:', indianVoice.name);
           setSelectedVoice(indianVoice);
         } else {
-          // Use first available voice
-          if (voices.length > 0) {
-            console.log('🔊 Auto-selected first available voice:', voices[0].name);
-            setSelectedVoice(voices[0]);
+          // Try to find a good English voice for Telugu pronunciation
+          const goodEnglishVoices = voices.filter(voice => 
+            voice.lang.includes('en') && 
+            (voice.name.toLowerCase().includes('microsoft') || 
+             voice.name.toLowerCase().includes('windows') ||
+             voice.name.toLowerCase().includes('sapi'))
+          );
+          
+          if (goodEnglishVoices.length > 0) {
+            console.log('🔊 Auto-selected good English voice for Telugu:', goodEnglishVoices[0].name);
+            setSelectedVoice(goodEnglishVoices[0]);
+          } else {
+            // Use first available voice
+            if (voices.length > 0) {
+              console.log('🔊 Auto-selected first available voice:', voices[0].name);
+              setSelectedVoice(voices[0]);
+            }
           }
         }
       }
@@ -569,6 +582,14 @@ export default function TeluguHandwriting() {
                 <p className="text-xs text-gray-600 mt-2">
                   Using: {selectedVoice.name} ({selectedVoice.lang})
                 </p>
+              )}
+              
+              {!availableVoices.some(voice => voice.lang.includes('te')) && (
+                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-xs text-yellow-800">
+                    <strong>💡 Tip:</strong> For better Telugu pronunciation, install Telugu language pack in Windows Settings → Time & Language → Language & Region → Add a language → Telugu
+                  </p>
+                </div>
               )}
             </div>
           </div>
