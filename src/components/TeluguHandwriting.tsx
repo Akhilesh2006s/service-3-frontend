@@ -27,6 +27,7 @@ interface HandwritingExercise {
 }
 
 export default function TeluguHandwriting() {
+  console.log('🚀 TeluguHandwriting component: Component rendering');
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -94,6 +95,7 @@ export default function TeluguHandwriting() {
 
   // Fetch uploaded handwriting exercises
   const fetchUploadedExercises = async () => {
+    console.log('🚀 TeluguHandwriting component: fetchUploadedExercises called');
     try {
       setIsLoadingUploaded(true);
       const token = localStorage.getItem('telugu-basics-token');
@@ -399,6 +401,7 @@ export default function TeluguHandwriting() {
   }, [currentExercise]);
 
   useEffect(() => {
+    console.log('🚀 TeluguHandwriting component: useEffect called');
     loadProgress();
     fetchUploadedExercises();
   }, []);
