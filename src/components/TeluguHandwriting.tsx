@@ -141,6 +141,21 @@ export default function TeluguHandwriting() {
     console.log('🚀 TeluguHandwriting component: useEffect called');
     loadProgress();
     fetchUploadedExercises();
+    
+    // Load speech synthesis voices
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      console.log('🔊 Loaded voices:', voices.length);
+      voices.forEach((voice, index) => {
+        console.log(`🔊 Voice ${index}: ${voice.name} (${voice.lang})`);
+      });
+    };
+    
+    // Load voices immediately and when they change
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
   }, []);
 
   const saveProgress = async (isCorrect: boolean) => {
@@ -216,14 +231,51 @@ export default function TeluguHandwriting() {
     }
     
     console.log('🎤 Speaking Telugu word:', currentExercise.teluguWord);
+    console.log('🔊 Speech synthesis available:', 'speechSynthesis' in window);
+    console.log('🔊 Speech synthesis speaking:', window.speechSynthesis.speaking);
+    console.log('🔊 Speech synthesis pending:', window.speechSynthesis.pending);
+    
     setIsPlaying(true);
     
     try {
+      // Stop any current speech
+      window.speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(currentExercise.teluguWord);
       utterance.lang = 'te-IN';
-      utterance.rate = 0.8;
+      utterance.rate = 0.7; // Slower for better pronunciation
       utterance.pitch = 1;
       utterance.volume = 1;
+      
+      // Try to get Telugu voice if available
+      const voices = window.speechSynthesis.getVoices();
+      console.log('🔊 Available voices:', voices.length);
+      
+      const teluguVoice = voices.find(voice => 
+        voice.lang.includes('te') || 
+        voice.lang.includes('telugu') ||
+        voice.name.toLowerCase().includes('telugu')
+      );
+      
+      if (teluguVoice) {
+        console.log('🔊 Using Telugu voice:', teluguVoice.name, teluguVoice.lang);
+        utterance.voice = teluguVoice;
+      } else {
+        console.log('🔊 No Telugu voice found, using default');
+        // Try Indian English voice as fallback
+        const indianVoice = voices.find(voice => 
+          voice.lang.includes('en-IN') || 
+          voice.name.toLowerCase().includes('india')
+        );
+        if (indianVoice) {
+          console.log('🔊 Using Indian English voice:', indianVoice.name);
+          utterance.voice = indianVoice;
+        }
+      }
+      
+      utterance.onstart = () => {
+        console.log('🎵 Audio playback started');
+      };
       
       utterance.onend = () => {
         console.log('✅ Audio playback ended');
@@ -232,15 +284,45 @@ export default function TeluguHandwriting() {
       
       utterance.onerror = (event) => {
         console.error('❌ Audio playback error:', event);
+        console.error('❌ Error details:', {
+          error: event.error,
+          type: event.type,
+          charIndex: event.charIndex,
+          charCode: event.charCode
+        });
         setIsPlaying(false);
         toast({
           title: "Audio Error",
-          description: "Failed to play audio. Please try again.",
+          description: `Failed to play audio: ${event.error}. Please check your system audio settings.`,
           variant: "destructive"
         });
       };
       
+      utterance.onpause = () => {
+        console.log('⏸️ Audio playback paused');
+      };
+      
+      utterance.onresume = () => {
+        console.log('▶️ Audio playback resumed');
+      };
+      
+      console.log('🔊 Starting speech synthesis...');
       window.speechSynthesis.speak(utterance);
+      
+      // Fallback: if no audio after 3 seconds, show warning
+      setTimeout(() => {
+        if (window.speechSynthesis.speaking) {
+          console.log('🔊 Audio is still playing after 3 seconds');
+        } else {
+          console.log('⚠️ No audio detected after 3 seconds');
+          toast({
+            title: "Audio Issue",
+            description: "Audio may not be working. Please check your system volume and browser permissions.",
+            variant: "destructive"
+          });
+        }
+      }, 3000);
+      
     } catch (error) {
       console.error('❌ Speech synthesis error:', error);
       setIsPlaying(false);
