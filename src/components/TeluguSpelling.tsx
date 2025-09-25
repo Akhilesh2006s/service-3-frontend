@@ -80,9 +80,13 @@ export default function TeluguSpelling() {
         return;
       }
 
-      const response = await fetch('https://service-3-backend-production.up.railway.app/api/csv-upload/exercises/varnamala?limit=100', {
+      console.log('🔑 Token found, making API call to fetch varnamala exercises...');
+      console.log('🔑 Token preview:', token.substring(0, 20) + '...');
+
+      const response = await fetch('https://service-3-backend-production.up.railway.app/api/csv-upload/learner/exercises/varnamala?limit=100', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
@@ -285,7 +289,9 @@ export default function TeluguSpelling() {
   const playAudio = () => {
     if (!currentExercise) return; // Guard clause
     
-    console.log('🎤 Attempting to play audio:', currentExercise.audio);
+    // Use teluguWord for speech synthesis (uploaded exercises don't have audio property)
+    const textToSpeak = currentExercise.audio || currentExercise.teluguWord;
+    console.log('🎤 Attempting to play audio:', textToSpeak);
     
     // Check if speech synthesis is supported
     if (!('speechSynthesis' in window)) {
@@ -300,7 +306,7 @@ export default function TeluguSpelling() {
     setIsPlaying(true);
     
     // Use the same direct approach that works
-    const utterance = new SpeechSynthesisUtterance(currentExercise.audio);
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.lang = 'hi-IN'; // Use Hindi language code for Telugu
     utterance.rate = 0.6;
     utterance.pitch = 1.0;
@@ -337,7 +343,7 @@ export default function TeluguSpelling() {
     window.speechSynthesis.cancel();
     
     // Speak immediately
-    console.log('🎤 Speaking Telugu word:', currentExercise.audio);
+    console.log('🎤 Speaking Telugu word:', textToSpeak);
     window.speechSynthesis.speak(utterance);
   };
 
