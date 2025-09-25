@@ -655,11 +655,9 @@ export default function TeluguHandwriting() {
   };
 
   useEffect(() => {
-    // Only reset if not currently drawing
-    if (!isDrawing) {
-      resetExercise();
-    }
-  }, [currentExerciseIndex, isDrawing]);
+    // Only reset when exercise changes, not when drawing state changes
+    resetExercise();
+  }, [currentExerciseIndex]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
