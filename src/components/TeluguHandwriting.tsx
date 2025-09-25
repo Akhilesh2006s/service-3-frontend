@@ -405,6 +405,7 @@ export default function TeluguHandwriting() {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         const pos = getEventPos(e);
+        console.log('🎨 Start drawing at:', pos);
         ctx.beginPath();
         ctx.moveTo(pos.x, pos.y);
       }
@@ -438,9 +439,15 @@ export default function TeluguHandwriting() {
     }
   };
 
-  // Add global mouse event listeners to handle drawing outside canvas
+  // Add global event listeners to handle drawing outside canvas
   useEffect(() => {
     const handleGlobalMouseUp = () => {
+      if (isDrawing) {
+        setIsDrawing(false);
+      }
+    };
+
+    const handleGlobalTouchEnd = () => {
       if (isDrawing) {
         setIsDrawing(false);
       }
@@ -469,14 +476,44 @@ export default function TeluguHandwriting() {
       }
     };
 
+    const handleGlobalTouchMove = (e: TouchEvent) => {
+      if (isDrawing) {
+        e.preventDefault(); // Prevent scrolling
+        const canvas = canvasRef.current;
+        if (canvas && e.touches.length > 0) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const touch = e.touches[0];
+            const x = (touch.clientX - rect.left) * scaleX;
+            const y = (touch.clientY - rect.top) * scaleY;
+            
+            // Only draw if coordinates are within canvas bounds
+            if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
+              ctx.lineTo(x, y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+    };
+
     if (isDrawing) {
+      // Add both mouse and touch events
       document.addEventListener('mousemove', handleGlobalMouseMove);
       document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+      document.addEventListener('touchend', handleGlobalTouchEnd);
     }
 
     return () => {
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchmove', handleGlobalTouchMove);
+      document.removeEventListener('touchend', handleGlobalTouchEnd);
     };
   }, [isDrawing]);
 
@@ -615,15 +652,15 @@ export default function TeluguHandwriting() {
       
       // Handle mobile canvas sizing
       const handleResize = () => {
-        const rect = canvas.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
+        const maxWidth = Math.min(600, window.innerWidth - 40);
         
         // Set display size
-        canvas.style.width = Math.min(600, window.innerWidth - 40) + 'px';
+        canvas.style.width = maxWidth + 'px';
         canvas.style.height = '200px';
         
         // Set actual size in memory (scaled to account for extra pixel density)
-        canvas.width = Math.min(600, window.innerWidth - 40) * dpr;
+        canvas.width = maxWidth * dpr;
         canvas.height = 200 * dpr;
         
         // Scale the drawing context so everything will work at the higher ratio
@@ -634,6 +671,14 @@ export default function TeluguHandwriting() {
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
         }
+        
+        console.log('📱 Canvas resized:', {
+          displayWidth: maxWidth,
+          displayHeight: 200,
+          actualWidth: canvas.width,
+          actualHeight: canvas.height,
+          dpr: dpr
+        });
       };
       
       handleResize();
