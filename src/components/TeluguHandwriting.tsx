@@ -68,6 +68,13 @@ export default function TeluguHandwriting() {
   // Get current exercise
   const currentExercise = filteredExercises[currentExerciseIndex];
 
+  // Initialize component - fetch exercises on mount
+  useEffect(() => {
+    console.log('🚀 TeluguHandwriting component: useEffect called');
+    loadProgress();
+    fetchUploadedExercises();
+  }, []);
+
   // If no exercises available, show message
   if (filteredExercises.length === 0) {
     return (
@@ -399,12 +406,6 @@ export default function TeluguHandwriting() {
       }
     }
   }, [currentExercise]);
-
-  useEffect(() => {
-    console.log('🚀 TeluguHandwriting component: useEffect called');
-    loadProgress();
-    fetchUploadedExercises();
-  }, []);
 
   useEffect(() => {
     resetExercise();
