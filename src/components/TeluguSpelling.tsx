@@ -604,6 +604,31 @@ export default function TeluguSpelling() {
     };
   }, []);
 
+  // If no exercises available, show message
+  if (filteredExercises.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center text-gray-600">No Varnamala Exercises Available</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-gray-500 mb-4">
+              No spelling exercises are available at the moment. Please check back later or contact your trainer.
+            </p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+              className="mt-4"
+            >
+              Refresh Page
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'bg-green-100 text-green-800';
