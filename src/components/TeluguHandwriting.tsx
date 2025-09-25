@@ -368,8 +368,16 @@ export default function TeluguHandwriting() {
     }
   };
 
-  const clearCanvas = () => {
-    console.log('🧹 Clearing canvas, isDrawing:', isDrawing);
+  const clearCanvas = (force = false) => {
+    console.log('🧹 clearCanvas called, isDrawing:', isDrawing, 'force:', force);
+    console.trace('🧹 clearCanvas call stack:'); // This will show where it was called from
+    
+    // Don't clear if user is actively drawing, unless forced
+    if (isDrawing && !force) {
+      console.log('🧹 Skipping canvas clear because user is drawing');
+      return;
+    }
+    
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
@@ -912,7 +920,7 @@ export default function TeluguHandwriting() {
               </div>
               <div className="flex justify-center space-x-2 mt-4">
                 <Button
-                  onClick={clearCanvas}
+                  onClick={() => clearCanvas(true)}
                   variant="outline"
                   size="sm"
                 >
