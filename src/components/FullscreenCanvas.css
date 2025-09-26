@@ -1,0 +1,132 @@
+/* Fullscreen canvas styles for better handwriting experience */
+.fullscreen-mode {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  background: #f8fafc !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.fullscreen-mode .canvas-container {
+  width: 100vw !important;
+  height: calc(100vh - 60px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-top: 60px !important;
+}
+
+.fullscreen-mode canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: white !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Landscape orientation for mobile */
+@media screen and (orientation: landscape) {
+  .fullscreen-mode {
+    transform: rotate(0deg);
+  }
+}
+
+/* Prevent body scroll when in fullscreen */
+body.fullscreen-active {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Better touch handling for mobile */
+.fullscreen-mode canvas {
+  touch-action: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  -khtml-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Smooth transitions */
+.fullscreen-mode {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Fullscreen header */
+.fullscreen-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+/* Fullscreen canvas area */
+.fullscreen-canvas-area {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Clean fullscreen header */
+.fullscreen-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .fullscreen-mode {
+    /* Force landscape on mobile */
+    transform: rotate(0deg);
+  }
+  
+  .fullscreen-canvas-area {
+    padding: 10px;
+  }
+  
+  .fullscreen-mode canvas {
+    border-radius: 4px !important;
+  }
+  
+  .fullscreen-header {
+    height: 56px;
+    padding: 0 12px;
+  }
+}

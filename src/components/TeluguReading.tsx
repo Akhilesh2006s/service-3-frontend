@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TeluguUnitManager from "@/components/TeluguUnitManager";
-// Remove dependency on complex speech utility - use direct approach instead
+import { speakText } from "@/utils/speechUtils";
+// Enhanced speech utilities with better browser compatibility
 
 // TypeScript declarations for speech recognition
 declare global {
@@ -486,7 +487,7 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
     return chunks.filter(c => c.length > 0);
   };
 
-  const speakTelugu = (text: string) => {
+  const speakTelugu = async (text: string) => {
     console.log('🎤 Speaking Telugu text:', text);
     
     // Prevent multiple simultaneous speech requests
@@ -495,192 +496,51 @@ const TeluguReading = ({ currentMilestone }: TeluguReadingProps) => {
       return;
     }
     
-    // Check browser support first
-    if (!('speechSynthesis' in window)) {
-      console.error('❌ Speech synthesis not supported');
-      toast({
-        title: "Not Supported",
-        description: "Speech synthesis is not supported in this browser.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Use stored voices or get fresh ones
-    const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
-    console.log('🎤 Available voices:', voices.length);
-    
-    if (voices.length === 0) {
-      console.warn('⚠️ No voices available, trying to load...');
-      
-      // Enhanced voice loading for mobile
-      const loadVoices = () => {
-        const voicesAfterDelay = window.speechSynthesis.getVoices();
-        console.log('🔄 Attempting to load voices, found:', voicesAfterDelay.length);
-        
-        if (voicesAfterDelay.length > 0) {
-          console.log('✅ Voices loaded successfully:', voicesAfterDelay.length);
-          console.log('🎤 Available voices:', voicesAfterDelay.map(v => `${v.name} (${v.lang})`));
-          speakTelugu(text); // Retry with loaded voices
-        } else {
-          console.error('❌ Still no voices available after loading attempt');
-          toast({
-            title: "Voice Loading Issue",
-            description: "Unable to load speech voices. Please refresh the page and try again.",
-            variant: "destructive"
-          });
-        }
-      };
-      
-      // Try multiple loading strategies for mobile
-      window.speechSynthesis.getVoices(); // Trigger loading
-      
-      // Wait and try again with increasing delays
-      setTimeout(loadVoices, 500);
-      setTimeout(loadVoices, 1500);
-      setTimeout(loadVoices, 3000);
-      
-      return;
-    }
-    
     setIsPlaying(true);
     setIsSpeaking(true);
     
+    // Use enhanced speech utilities with better browser compatibility
     try {
-      // Prepare chunk queue
-      const chunks = splitTextIntoChunks(text, 260);
-      console.log(`🧩 Prepared ${chunks.length} chunk(s) for speech`);
-      
-      // Use Google Geeta voice specifically
-      let selectedVoice = null;
-      
-      // Log all available voices for debugging
-      console.log('🎤 All available voices:', voices.map(v => `${v.name} (${v.lang}) - ${v.localService ? 'local' : 'remote'}`));
-      
-      // Priority 1: Google Geeta voice (preferred)
-      selectedVoice = voices.find(voice => 
-        voice.name.toLowerCase().includes('geeta') || 
-        voice.name.toLowerCase().includes('google geeta') ||
-        (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('geeta'))
-      );
-      if (selectedVoice) {
-        console.log('✅ Found Google Geeta voice:', selectedVoice.name);
-      }
-      
-      // Priority 2: Any Telugu voice (fallback)
-      if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang === 'te-IN');
-        if (selectedVoice) {
-          console.log('✅ Found Telugu voice:', selectedVoice.name);
-        }
-      }
-      
-      // Priority 3: Hindi voices (good for Telugu on mobile)
-      if (!selectedVoice) {
-        selectedVoice = voices.find(v => 
-          v.lang.startsWith('hi') || 
-          v.name.toLowerCase().includes('hindi') ||
-          v.name.toLowerCase().includes('हिन्दी')
-        );
-        if (selectedVoice) {
-          console.log('✅ Found Hindi voice:', selectedVoice.name);
-        }
-      }
-      
-      // Priority 4: Any available voice (last resort)
-      if (!selectedVoice && voices.length > 0) {
-        selectedVoice = voices[0];
-        console.log('⚠️ Using fallback voice:', selectedVoice.name);
-      }
-      
-      // Mobile-specific adjustments
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      if (isMobile && selectedVoice) {
-        console.log('📱 Mobile device detected, using voice:', selectedVoice.name);
-      }
-      
-      // Stop any current speech first
-      window.speechSynthesis.cancel();
-      
-      const speakChunkAt = (index: number) => {
-        if (index >= chunks.length) {
+      await speakText(text, {
+        lang: 'te-IN',
+        rate: 0.75,
+        pitch: 1.0,
+        onEnd: () => {
           setIsPlaying(false);
           setIsSpeaking(false);
-          console.log('✅ Finished speaking all chunks');
-          return;
-        }
-        
-        const part = chunks[index];
-        const utterance = new SpeechSynthesisUtterance(part);
-        
-        if (selectedVoice) {
-          utterance.voice = selectedVoice as SpeechSynthesisVoice;
-          utterance.lang = 'te-IN'; // Always use Telugu language code
-          console.log('🎤 Using voice:', selectedVoice.name, `(${selectedVoice.lang})`);
-        } else {
-          utterance.lang = 'te-IN';
-          console.log('⚠️ No voice selected, using Telugu language code');
-        }
-        
-        // Mobile-optimized speech settings
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-          // Mobile-specific settings for better compatibility
-          utterance.rate = 0.6; // Slightly slower for mobile
-          utterance.pitch = 1.1; // Slightly higher pitch for clarity
-          utterance.volume = 0.9; // Slightly lower volume to avoid distortion
-          console.log('📱 Applied mobile-optimized speech settings');
-        } else {
-          // Desktop settings
-          utterance.rate = 0.7;
-          utterance.pitch = 1.0;
-          utterance.volume = 1.0;
-        }
-        
-        utterance.onstart = () => {
-          if (index === 0) {
-            console.log('✅ Telugu speech synthesis started');
-            setSpeechAttempts(0);
-          }
-          console.log(`🗣️ Speaking chunk ${index + 1}/${chunks.length} (${part.length} chars)`);
-        };
-        
-        utterance.onend = () => {
-          // Queue next chunk
-          speakChunkAt(index + 1);
-        };
-        
-        utterance.onerror = (event) => {
-          console.error('❌ Speech synthesis error on chunk', index + 1, event);
-          const attempts = speechAttempts + 1;
-          setSpeechAttempts(attempts);
-          if (attempts < 3) {
-            setTimeout(() => speakChunkAt(index), 500 * attempts);
+        },
+        onError: (error) => {
+          console.error('❌ Speech synthesis error:', error);
+          setIsPlaying(false);
+          setIsSpeaking(false);
+          
+          // Provide user-friendly error messages
+          let errorMessage = "Failed to play audio. ";
+          if (error.error === 'not-supported') {
+            errorMessage += "Your browser doesn't support speech synthesis.";
+          } else if (error.error === 'no-voices-available') {
+            errorMessage += "No speech voices are available. Please try refreshing the page.";
+          } else if (error.error === 'voice-loading-failed') {
+            errorMessage += "Unable to load speech voices. Please try again.";
           } else {
-            setIsPlaying(false);
-            setIsSpeaking(false);
-            toast({
-              title: "Speech Error",
-              description: `Could not read the text aloud. Error: ${event.error}`,
-              variant: "destructive"
-            });
+            errorMessage += "Please try again or check your browser settings.";
           }
-        };
-        
-        window.speechSynthesis.speak(utterance);
-      };
-      
-      // Start after a short delay to ensure clean state
-      setTimeout(() => speakChunkAt(0), 120);
-      
+          
+          toast({
+            title: "Audio Error",
+            description: errorMessage,
+            variant: "destructive"
+          });
+        }
+      });
     } catch (error) {
-      console.error('❌ Error creating speech utterance:', error);
+      console.error('❌ Speech synthesis failed:', error);
       setIsPlaying(false);
       setIsSpeaking(false);
+      
       toast({
-        title: "Speech Error",
-        description: "Failed to create speech utterance. Please try again.",
+        title: "Audio Error",
+        description: "Failed to play audio. Please try again.",
         variant: "destructive"
       });
     }

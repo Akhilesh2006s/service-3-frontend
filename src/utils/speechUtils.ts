@@ -80,27 +80,26 @@ export const speakText = (text: string, options?: {
     const voices = window.speechSynthesis.getVoices();
     console.log('🎤 Available voices:', voices.map(v => `${v.name} (${v.lang})`));
     
-    // Priority order for Telugu speech - Google Geeta first
+    // Priority order for Telugu speech
     let selectedVoice = null;
     
-    // 1. First try to find Google Geeta voice specifically
-    selectedVoice = voices.find(voice => 
-      voice.name.toLowerCase().includes('geeta') || 
-      voice.name.toLowerCase().includes('google geeta') ||
-      (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('geeta'))
-    );
+    // 1. First try to find a Telugu voice
+    selectedVoice = voices.find(voice => voice.lang.startsWith('te'));
     
-    // 2. If no Google Geeta, try any Telugu voice
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.lang.startsWith('te'));
-    }
-    
-    // 3. If no Telugu voice, try Hindi voice (can speak Telugu)
+    // 2. If no Telugu voice, try Hindi voice (can speak Telugu)
     if (!selectedVoice) {
       selectedVoice = voices.find(voice => 
         voice.lang.startsWith('hi') || 
         voice.name.toLowerCase().includes('hindi') ||
         voice.name.toLowerCase().includes('हिन्दी')
+      );
+    }
+    
+    // 3. If no Hindi voice, try any Indian language voice
+    if (!selectedVoice) {
+      selectedVoice = voices.find(voice => 
+        voice.name.toLowerCase().includes('indian') ||
+        voice.name.toLowerCase().includes('india')
       );
     }
     
@@ -193,34 +192,34 @@ export const testSpeechSynthesis = () => {
   return true;
 };
 
-// Test Telugu speech specifically with Google Geeta
+// Test Telugu speech specifically
 export const testTeluguSpeech = (text: string = 'రండి') => {
-  console.log('🧪 Testing Telugu speech with Google Geeta:', text);
+  console.log('🧪 Testing Telugu speech with:', text);
   
   const voices = window.speechSynthesis.getVoices();
-  const geetaVoice = voices.find(voice => 
-    voice.name.toLowerCase().includes('geeta') || 
-    voice.name.toLowerCase().includes('google geeta') ||
-    (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('geeta'))
+  const hindiVoice = voices.find(voice => 
+    voice.lang.startsWith('hi') || 
+    voice.name.toLowerCase().includes('hindi') ||
+    voice.name.toLowerCase().includes('हिन्दी')
   );
   
-  if (geetaVoice) {
-    console.log('✅ Found Google Geeta voice for Telugu:', geetaVoice.name);
+  if (hindiVoice) {
+    console.log('✅ Found Hindi voice for Telugu:', hindiVoice.name);
     
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = geetaVoice;
-    utterance.lang = 'te-IN'; // Use Telugu language code
-    utterance.rate = 0.75;
-    utterance.pitch = 1.1;
+    utterance.voice = hindiVoice;
+    utterance.lang = 'hi-IN'; // Use Hindi language code
+    utterance.rate = 0.6;
+    utterance.pitch = 1.0;
     
-    utterance.onstart = () => console.log('✅ Telugu test started with Google Geeta');
+    utterance.onstart = () => console.log('✅ Telugu test started');
     utterance.onend = () => console.log('✅ Telugu test completed');
     utterance.onerror = (error) => console.error('❌ Telugu test failed:', error);
     
     window.speechSynthesis.speak(utterance);
     return true;
   } else {
-    console.log('❌ No Google Geeta voice found for Telugu');
+    console.log('❌ No Hindi voice found for Telugu');
     return false;
   }
 };

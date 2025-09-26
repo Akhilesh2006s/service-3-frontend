@@ -19,6 +19,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { speakText } from "@/utils/speechUtils";
 
 // TypeScript declarations for speech recognition
 declare global {
@@ -273,31 +274,31 @@ const TeluguUnitManager = ({ currentMilestone, isStudentView = false }: TeluguUn
     setIsAddingUnit(false);
   };
 
-  const speakTelugu = (text: string) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'te-IN';
-      utterance.rate = 0.75;
-      utterance.pitch = 1.1;
-      
-      // Use Google Geeta voice specifically
-      const voices = window.speechSynthesis.getVoices();
-      const geetaVoice = voices.find(voice => 
-        voice.name.toLowerCase().includes('geeta') || 
-        voice.name.toLowerCase().includes('google') ||
-        (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('telugu'))
-      );
-      
-      if (geetaVoice) {
-        utterance.voice = geetaVoice;
-        console.log('🎤 Using Google Geeta voice:', geetaVoice.name);
-      } else {
-        console.log('⚠️ Google Geeta voice not found, using default Telugu voice');
-      }
-      
-      window.speechSynthesis.speak(utterance);
+  const speakTelugu = async (text: string) => {
+    try {
+      await speakText(text, {
+        lang: 'te-IN',
+        rate: 0.75,
+        pitch: 1.1,
+        onEnd: () => {
+          console.log('✅ Telugu speech completed');
+        },
+        onError: (error) => {
+          console.error('❌ Telugu speech error:', error);
+          toast({
+            title: "Audio Error",
+            description: "Failed to play Telugu audio. Please try again.",
+            variant: "destructive"
+          });
+        }
+      });
+    } catch (error) {
+      console.error('❌ Telugu speech failed:', error);
+      toast({
+        title: "Audio Error",
+        description: "Failed to play Telugu audio. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 

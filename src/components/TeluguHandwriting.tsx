@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
-import { CheckCircle, XCircle, ArrowRight, RotateCcw, Volume2, Eye, EyeOff, BarChart3, Eraser, Undo2, Zap, Crown } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowRight, RotateCcw, Volume2, Eye, EyeOff, BarChart3, Eraser, Undo2, Zap, Crown, ZoomIn, ZoomOut, MousePointer, Search } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
+import { speakText } from '../utils/speechUtils';
+import './FullscreenCanvas.css';
 
 interface UploadedHandwritingExercise {
   _id: string;
@@ -44,7 +46,11 @@ export default function TeluguHandwriting() {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isPremiumOCRLoading, setIsPremiumOCRLoading] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState<{x: number, y: number} | null>(null);
+  const [showMagnifier, setShowMagnifier] = useState(false);
+  const [magnifierPosition, setMagnifierPosition] = useState<{x: number, y: number} | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const magnifierRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -53,7 +59,168 @@ export default function TeluguHandwriting() {
     const newFullScreenState = !isFullScreen;
     setIsFullScreen(newFullScreenState);
     console.log('🖥️ Toggling full screen:', newFullScreenState);
+    
+    if (newFullScreenState) {
+      // Request landscape orientation for better writing experience
+      if (screen.orientation && 'lock' in screen.orientation) {
+        (screen.orientation as any).lock('landscape').catch((err: any) => {
+          console.log('Could not lock orientation:', err);
+        });
+      }
+      
+      // Hide body scroll to prevent interference
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('fullscreen-active');
+      
+      // FIXED: Set canvas dimensions to match screen
+      setTimeout(() => {
+        if (canvasRef.current) {
+          canvasRef.current.width = window.innerWidth;
+          canvasRef.current.height = window.innerHeight - 60;
+          console.log('🎯 Canvas resized for fullscreen:', {
+            width: canvasRef.current.width,
+            height: canvasRef.current.height
+          });
+        }
+      }, 100);
+    } else {
+      // Unlock orientation when exiting full-screen
+      if (screen.orientation && 'unlock' in screen.orientation) {
+        (screen.orientation as any).unlock();
+      }
+      
+      // Restore body scroll
+      document.body.style.overflow = 'auto';
+      document.body.classList.remove('fullscreen-active');
+      
+      // FIXED: Reset canvas dimensions
+      setTimeout(() => {
+        if (canvasRef.current) {
+          canvasRef.current.width = 800;
+          canvasRef.current.height = 300;
+          console.log('🎯 Canvas reset to normal size:', {
+            width: canvasRef.current.width,
+            height: canvasRef.current.height
+          });
+        }
+      }, 100);
+    }
   };
+
+
+  // Magnifier functions
+  const toggleMagnifier = () => {
+    const newState = !showMagnifier;
+    setShowMagnifier(newState);
+    console.log('🔍 Magnifier toggled:', newState);
+    
+    // Force update magnifier position when enabled
+    if (newState) {
+      // Use current cursor position or default to center
+      const x = cursorPosition ? cursorPosition.x : 400;
+      const y = cursorPosition ? cursorPosition.y : 200;
+      setTimeout(() => updateMagnifier(x, y), 100);
+    }
+  };
+
+  const updateMagnifier = (x: number, y: number) => {
+    console.log('🔍 Following cursor at:', { x, y });
+    
+    if (showMagnifier && canvasRef.current && magnifierRef.current) {
+      const canvas = canvasRef.current;
+      const magnifier = magnifierRef.current;
+      const ctx = magnifier.getContext('2d');
+      
+      if (ctx) {
+        // Clear magnifier canvas
+        ctx.clearRect(0, 0, magnifier.width, magnifier.height);
+        
+        // Set magnifier position
+        setMagnifierPosition({ x, y });
+        
+        // Show full canvas in magnifier
+        const magnifierWidth = magnifier.width;
+        const magnifierHeight = magnifier.height;
+        
+        // Calculate scale to fit full canvas in magnifier
+        const scaleX = magnifierWidth / canvas.width;
+        const scaleY = magnifierHeight / canvas.height;
+        const scale = Math.min(scaleX, scaleY);
+        
+        console.log('🔍 Showing full canvas in magnifier:', { 
+          canvas: { width: canvas.width, height: canvas.height },
+          magnifier: { width: magnifierWidth, height: magnifierHeight },
+          scale
+        });
+        
+        // Clear magnifier first
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, magnifierWidth, magnifierHeight);
+        
+        // Draw the full canvas scaled to fit magnifier
+        ctx.save();
+        ctx.scale(scale, scale);
+        ctx.drawImage(canvas, 0, 0);
+        ctx.restore();
+        
+        // Calculate cursor position on magnifier - FIXED FOR MOBILE
+        const canvasRect = canvas.getBoundingClientRect();
+        const actualX = (x / canvasRect.width) * canvas.width;
+        const actualY = (y / canvasRect.height) * canvas.height;
+        const cursorX = actualX * scale;
+        const cursorY = actualY * scale;
+        
+        console.log('🔍 Cursor position fix:', {
+          original: { x, y },
+          canvasRect: { width: canvasRect.width, height: canvasRect.height },
+          canvas: { width: canvas.width, height: canvas.height },
+          actual: { x: actualX, y: actualY },
+          magnifier: { x: cursorX, y: cursorY },
+          scale
+        });
+        
+        // Add red dot at cursor position
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(cursorX, cursorY, 2, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Add small text "your cursor is here" at cursor position
+        ctx.fillStyle = '#000000';
+        ctx.font = '10px Arial';
+        ctx.fillText('your cursor is here', cursorX + 5, cursorY - 5);
+        
+        
+        console.log('🔍 Magnifier following cursor');
+      }
+    } else {
+      // Show a test pattern if magnifier is enabled but no cursor position
+      if (showMagnifier && magnifierRef.current) {
+        const magnifier = magnifierRef.current;
+        const ctx = magnifier.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#f0f0f0';
+          ctx.fillRect(0, 0, magnifier.width, magnifier.height);
+          ctx.fillStyle = '#000000';
+          ctx.font = '16px Arial';
+          ctx.fillText('MOVE CURSOR', 20, 80);
+          ctx.fillText('TO SEE ZOOM', 20, 120);
+        }
+      }
+    }
+  };
+
+  // Cleanup effect for fullscreen mode
+  useEffect(() => {
+    return () => {
+      // Cleanup when component unmounts
+      document.body.style.overflow = 'auto';
+      document.body.classList.remove('fullscreen-active');
+      if (screen.orientation && 'unlock' in screen.orientation) {
+        (screen.orientation as any).unlock();
+      }
+    };
+  }, []);
 
   // Convert uploaded exercises to HandwritingExercise format
   const convertUploadedToHandwritingExercises = (uploaded: UploadedHandwritingExercise[]): HandwritingExercise[] => {
@@ -237,7 +404,7 @@ export default function TeluguHandwriting() {
     resetExercise();
   };
 
-  const playAudio = () => {
+  const playAudio = async () => {
     console.log('🎤 playAudio called, currentExercise:', currentExercise);
     
     if (!currentExercise) {
@@ -256,92 +423,48 @@ export default function TeluguHandwriting() {
     }
     
     console.log('🎤 Speaking Telugu word:', currentExercise.teluguWord);
-    console.log('🔊 Speech synthesis available:', 'speechSynthesis' in window);
-    console.log('🔊 Speech synthesis speaking:', window.speechSynthesis.speaking);
-    console.log('🔊 Speech synthesis pending:', window.speechSynthesis.pending);
-    
     setIsPlaying(true);
     
+    // Use enhanced speech utilities with better browser compatibility
     try {
-      // Stop any current speech
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(currentExercise.teluguWord);
-      utterance.lang = 'te-IN';
-      utterance.rate = 0.7; // Slower for better pronunciation
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      
-      // Use Google Geeta voice specifically
-      const voices = window.speechSynthesis.getVoices();
-      const geetaVoice = voices.find(voice => 
-        voice.name.toLowerCase().includes('geeta') || 
-        voice.name.toLowerCase().includes('google geeta') ||
-        (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('geeta'))
-      );
-      
-      if (geetaVoice) {
-        utterance.voice = geetaVoice;
-        console.log('🔊 Using Google Geeta voice:', geetaVoice.name);
-      } else {
-        console.log('⚠️ Google Geeta voice not found, using default Telugu voice');
-      }
-      
-      utterance.onstart = () => {
-        console.log('🎵 Audio playback started');
-      };
-      
-      utterance.onend = () => {
-        console.log('✅ Audio playback ended');
-        setIsPlaying(false);
-      };
-      
-      utterance.onerror = (event) => {
-        console.error('❌ Audio playback error:', event);
-        console.error('❌ Error details:', {
-          error: event.error,
-          type: event.type,
-          charIndex: event.charIndex
-        });
-        setIsPlaying(false);
-        toast({
-          title: "Audio Error",
-          description: `Failed to play audio: ${event.error}. Please check your system audio settings.`,
-          variant: "destructive"
-        });
-      };
-      
-      utterance.onpause = () => {
-        console.log('⏸️ Audio playback paused');
-      };
-      
-      utterance.onresume = () => {
-        console.log('▶️ Audio playback resumed');
-      };
-      
-      console.log('🔊 Starting speech synthesis...');
-      window.speechSynthesis.speak(utterance);
-      
-      // Fallback: if no audio after 3 seconds, show warning
-      setTimeout(() => {
-        if (window.speechSynthesis.speaking) {
-          console.log('🔊 Audio is still playing after 3 seconds');
-        } else {
-          console.log('⚠️ No audio detected after 3 seconds');
+      await speakText(currentExercise.teluguWord, {
+        lang: 'te-IN',
+        rate: 0.7,
+        pitch: 1.0,
+        onEnd: () => {
+          console.log('✅ Audio playback ended');
+          setIsPlaying(false);
+        },
+        onError: (error) => {
+          console.error('❌ Speech synthesis error:', error);
+          setIsPlaying(false);
+          
+          // Provide user-friendly error messages
+          let errorMessage = "Failed to play audio. ";
+          if (error.error === 'not-supported') {
+            errorMessage += "Your browser doesn't support speech synthesis.";
+          } else if (error.error === 'no-voices-available') {
+            errorMessage += "No speech voices are available. Please try refreshing the page.";
+          } else if (error.error === 'voice-loading-failed') {
+            errorMessage += "Unable to load speech voices. Please try again.";
+          } else {
+            errorMessage += "Please try again or check your browser settings.";
+          }
+          
           toast({
-            title: "Audio Issue",
-            description: "Audio may not be working. Please check your system volume and browser permissions.",
+            title: "Audio Error",
+            description: errorMessage,
             variant: "destructive"
           });
         }
-      }, 3000);
-      
+      });
     } catch (error) {
-      console.error('❌ Speech synthesis error:', error);
+      console.error('❌ Speech synthesis failed:', error);
       setIsPlaying(false);
+      
       toast({
         title: "Audio Error",
-        description: "Speech synthesis not supported in this browser.",
+        description: "Failed to play audio. Please try again.",
         variant: "destructive"
       });
     }
@@ -385,19 +508,16 @@ export default function TeluguHandwriting() {
       clientY = e.clientY;
     }
     
-    // FIXED: Use proper scaling for responsive canvas
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    // FIXED: Direct coordinate mapping without scaling
+    // The canvas should match the display size exactly
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
     
-    const x = (clientX - rect.left) * scaleX;
-    const y = (clientY - rect.top) * scaleY;
-    
-    console.log('🎯 Position calculation:', {
+    console.log('🎯 Position calculation FIXED:', {
       clientX, clientY,
       rectLeft: rect.left, rectTop: rect.top,
       rectWidth: rect.width, rectHeight: rect.height,
       canvasWidth: canvas.width, canvasHeight: canvas.height,
-      scaleX, scaleY,
       finalX: x, finalY: y
     });
     
@@ -405,7 +525,10 @@ export default function TeluguHandwriting() {
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    // Note: preventDefault removed - using touchAction: 'none' in canvas style instead
+    // Prevent default to avoid scrolling and other interference
+    e.preventDefault();
+    e.stopPropagation();
+    
     console.log('🎨 Starting to draw, setting isDrawing to true');
     setIsDrawing(true);
     const canvas = canvasRef.current;
@@ -414,14 +537,23 @@ export default function TeluguHandwriting() {
       if (ctx) {
         const pos = getEventPos(e);
         console.log('🎨 Start drawing at:', pos);
+        
+        // Set up drawing context for better accuracy
         ctx.beginPath();
         ctx.moveTo(pos.x, pos.y);
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#000000';
+        ctx.globalCompositeOperation = 'source-over';
       }
     }
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    // Note: preventDefault removed - using touchAction: 'none' in canvas style instead
+    // Prevent default to avoid scrolling and other interference
+    e.preventDefault();
+    e.stopPropagation();
     
     const canvas = canvasRef.current;
     if (canvas) {
@@ -429,10 +561,20 @@ export default function TeluguHandwriting() {
       if (ctx) {
         const pos = getEventPos(e);
         
+        // Update cursor position for zoom indicator
+        if ('clientX' in e) {
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          setCursorPosition({ x, y });
+          updateMagnifier(x, y);
+        }
+        
         if (isDrawing) {
           // Only draw if we're actually drawing
           ctx.lineTo(pos.x, pos.y);
           ctx.stroke();
+          console.log('🎨 Drawing to:', pos);
         }
       }
     }
@@ -441,12 +583,26 @@ export default function TeluguHandwriting() {
   // Track finger/stylus position even when not drawing
 
   const stopDrawing = (e?: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    // Note: preventDefault removed - using touchAction: 'none' in canvas style instead
+    // Prevent default to avoid scrolling and other interference
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     console.log('🛑 Stopping drawing, setting isDrawing to false');
     setIsDrawing(false);
   };
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // Track cursor position for zoom indicator
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      setCursorPosition({ x, y });
+      updateMagnifier(x, y);
+    }
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1236,9 +1392,10 @@ export default function TeluguHandwriting() {
         // FIXED: Proper mobile sizing without overflow
         let maxWidth, height;
         if (isFullScreen) {
-          // Full-screen landscape mode
+          // Full-screen landscape mode - use almost entire screen
           maxWidth = window.innerWidth - 20;
-          height = window.innerHeight - 100;
+          height = window.innerHeight - 120; // More space for fullscreen writing
+          console.log('🖥️ Fullscreen canvas size:', { maxWidth, height, screenWidth: window.innerWidth, screenHeight: window.innerHeight });
         } else {
           // FIXED: Mobile-first responsive sizing
           maxWidth = isMobile ? window.innerWidth - 40 : Math.min(800, window.innerWidth - 40);
@@ -1460,35 +1617,112 @@ export default function TeluguHandwriting() {
 
           {/* Canvas Section */}
           <div className="mb-6">
-            <div className={`bg-gray-50 rounded-lg p-4 md:p-6 ${isFullScreen ? 'fullscreen-mode' : ''}`}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Write the word here</h3>
-                <Button
-                  onClick={toggleFullScreen}
-                  variant="outline"
-                  size="sm"
-                  className="md:hidden"
-                >
-                  {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
-                </Button>
-              </div>
+            <div className={`bg-gray-50 rounded-lg p-4 md:p-6 ${isFullScreen ? 'fixed inset-0 z-50 bg-white p-0' : ''}`}>
+              {!isFullScreen && (
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Write the word here</h3>
+                  <Button
+                    onClick={toggleFullScreen}
+                    variant="outline"
+                    size="sm"
+                    className="md:hidden"
+                  >
+                    {isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
+                  </Button>
+                </div>
+              )}
+              
+              {isFullScreen && (
+                <div className="absolute top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+                  <div className="flex justify-between items-center px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-gray-700">Full Screen Writing</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={toggleMagnifier}
+                        size="sm"
+                        variant={showMagnifier ? "default" : "outline"}
+                        className={`h-8 px-3 ${showMagnifier ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                        title="Toggle Magnifier"
+                      >
+                        <Search className="w-4 h-4 mr-1" />
+                        {showMagnifier ? 'Magnifier ON' : 'Magnifier'}
+                      </Button>
+                      
+                      <div className="w-px h-6 bg-gray-300"></div>
+                      
+                      <Button
+                        onClick={() => clearCanvas()}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-gray-100"
+                        title="Clear Canvas"
+                      >
+                        <Eraser className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={toggleFullScreen}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-gray-100"
+                        title="Exit Full Screen"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Mobile-friendly writing area */}
-              <div className="relative mb-4">
-                <div className={`border-2 border-dashed border-gray-300 rounded-lg p-2 md:p-4 bg-white ${isFullScreen ? 'h-[calc(100vh-80px)] w-full' : 'w-full'}`}>
+              <div className={`relative ${isFullScreen ? 'h-[calc(100vh-60px)] pt-16' : 'mb-4'}`}>
+                <div className={`${isFullScreen ? 'h-full w-full bg-gray-50' : 'border-2 border-dashed border-gray-300 rounded-lg p-2 md:p-4 bg-white w-full'}`}>
                   <div className={`relative w-full ${isFullScreen ? 'h-full' : ''}`}>
                     <canvas
                       ref={canvasRef}
-                      width={800}
-                      height={300}
-                      className="border border-gray-200 rounded bg-white cursor-crosshair touch-none"
+                      width={isFullScreen ? window.innerWidth : 800}
+                      height={isFullScreen ? window.innerHeight - 60 : 300}
+                      className={`${isFullScreen ? 'h-full w-full border-0 rounded-none' : 'border border-gray-200 rounded bg-white'} cursor-crosshair touch-none`}
                       onMouseDown={startDrawing}
-                      onMouseMove={draw}
+                      onMouseMove={(e) => {
+                        draw(e);
+                        // Update magnifier on mouse move - shows zoomed area around cursor
+                        if (showMagnifier) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = e.clientX - rect.left;
+                          const y = e.clientY - rect.top;
+                          setCursorPosition({ x, y });
+                          updateMagnifier(x, y);
+                          console.log('🔍 Mouse moved to:', { x, y });
+                        }
+                      }}
                       onMouseUp={stopDrawing}
                       onMouseEnter={handleMouseEnter}
                       onMouseLeave={handleMouseLeave}
-                      onTouchStart={startDrawing}
-                      onTouchMove={draw}
+                      onTouchStart={(e) => {
+                        startDrawing(e);
+                        // Update magnifier for touch
+                        if (showMagnifier && e.touches.length > 0) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = e.touches[0].clientX - rect.left;
+                          const y = e.touches[0].clientY - rect.top;
+                          setCursorPosition({ x, y });
+                          updateMagnifier(x, y);
+                        }
+                      }}
+                      onTouchMove={(e) => {
+                        draw(e);
+                        // Update magnifier for touch move
+                        if (showMagnifier && e.touches.length > 0) {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = e.touches[0].clientX - rect.left;
+                          const y = e.touches[0].clientY - rect.top;
+                          setCursorPosition({ x, y });
+                          updateMagnifier(x, y);
+                        }
+                      }}
                       onTouchEnd={stopDrawing}
                       style={{ 
                         touchAction: 'none',
@@ -1498,6 +1732,39 @@ export default function TeluguHandwriting() {
                         display: 'block'
                       }}
                     />
+                    
+                    {/* Small red dot showing cursor position on main canvas */}
+                    {isFullScreen && cursorPosition && (
+                      <div 
+                        className="absolute pointer-events-none z-10"
+                        style={{
+                          left: `${cursorPosition.x}px`,
+                          top: `${cursorPosition.y}px`,
+                          transform: 'translate(-50%, -50%)'
+                        }}
+                      >
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg"></div>
+                      </div>
+                    )}
+
+                    {/* Magnifier - Responsive TV Style */}
+                    {isFullScreen && showMagnifier && (
+                      <div 
+                        className="fixed pointer-events-none z-[9999]"
+                        style={{
+                          right: '10px',
+                          top: '60px',
+                          transform: 'translate(0, 0)'
+                        }}
+                      >
+                        <canvas
+                          ref={magnifierRef}
+                          width={150}
+                          height={100}
+                          className="border border-gray-300 rounded bg-white"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
                 

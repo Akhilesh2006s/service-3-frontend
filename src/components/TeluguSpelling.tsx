@@ -7,7 +7,9 @@ import { CheckCircle, XCircle, ArrowRight, RotateCcw, Volume2, Eye, EyeOff, BarC
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
 import { spellingExercises, type SpellingExercise } from '../data/spellingExercises';
-// Remove dependency on complex speech utility - use direct approach instead
+import { speakText } from '../utils/speechUtils';
+import { getReorderedWord, reorderTeluguLetters } from '../utils/teluguLetterOrder';
+// Enhanced speech utilities with better browser compatibility
 
 interface UploadedVarnamalaExercise {
   _id: string;
@@ -43,44 +45,68 @@ export default function TeluguSpelling() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Function to reorder letters for proper Telugu character formation
-  // Apply the specific pattern: 1,4,2,3,5,6,7,8 (dhirgas before consonants)
-  const reorderLettersForDhirgas = (letters: string[], correctOrder: number[]): { letters: string[], correctOrder: number[] } => {
-    // Apply the specific reordering pattern: 1,4,2,3,5,6,7,8
-    // This means: position 1, then position 4, then position 2, then position 3, etc.
+  // Helper function to get letter type
+  const getLetterType = (letter: string): 'dhirga' | 'vowel' | 'consonant' | 'modifier' => {
+    // Telugu dhirgas (long vowels)
+    const dhirgas = ['ా', 'ీ', 'ూ', 'ే', 'ై', 'ో', 'ౌ'];
     
-    const reorderedLetters: string[] = [];
+    // Telugu short vowels
+    const shortVowels = ['అ', 'ఇ', 'ఉ', 'ఎ', 'ఒ', 'ి', 'ు', 'ె', 'ొ'];
+    
+    // Telugu consonants
+    const consonants = [
+      'క', 'ఖ', 'గ', 'ఘ', 'ఙ',
+      'చ', 'ఛ', 'జ', 'ఝ', 'ఞ',
+      'ట', 'ఠ', 'డ', 'ఢ', 'ణ',
+      'త', 'థ', 'ద', 'ధ', 'న',
+      'ప', 'ఫ', 'బ', 'భ', 'మ',
+      'య', 'ర', 'ల', 'వ', 'శ',
+      'ష', 'స', 'హ', 'ళ', 'క్ష', 'ఱ'
+    ];
+    
+    // Modifiers
+    const modifiers = ['్', 'ం', 'ః', 'ఁ'];
+    
+    if (dhirgas.includes(letter)) return 'dhirga';
+    if (shortVowels.includes(letter)) return 'vowel';
+    if (consonants.includes(letter)) return 'consonant';
+    if (modifiers.includes(letter)) return 'modifier';
+    
+    return 'consonant'; // default
+  };
+
+  // Function to reorder letters with dhirgas first
+  const reorderLettersForDhirgas = (letters: string[], correctOrder: number[]): { letters: string[], correctOrder: number[] } => {
+    // Join letters to form the word, then reorder with dhirgas first
+    const word = letters.join('');
+    console.log('🔍 Original word:', word);
+    const reorderedWord = reorderTeluguLetters(word);
+    console.log('🔍 Reordered word:', reorderedWord);
+    
+    // Split the reordered word back into individual letters
+    const reorderedLetters = reorderedWord.split('');
+    console.log('🔍 Reordered letters array:', reorderedLetters);
+    
+    // Create new correct order based on reordered letters
     const newCorrectOrder: number[] = [];
     
-    // Create the reordering pattern: 1,4,2,3,5,6,7,8 (0-indexed: 0,3,1,2,4,5,6,7)
-    const reorderPattern = [0, 3, 1, 2, 4, 5, 6, 7];
-    
-    // Apply the reordering pattern
-    for (let i = 0; i < Math.min(reorderPattern.length, letters.length); i++) {
-      const newIndex = reorderPattern[i];
-      if (newIndex < letters.length) {
-        reorderedLetters.push(letters[newIndex]);
-        newCorrectOrder.push(newIndex);
+    // Map each reordered letter back to its original position
+    for (let i = 0; i < reorderedLetters.length; i++) {
+      const reorderedLetter = reorderedLetters[i];
+      const originalIndex = letters.indexOf(reorderedLetter);
+      if (originalIndex !== -1) {
+        newCorrectOrder.push(originalIndex);
       }
     }
     
-    // Add any remaining letters that weren't covered by the pattern
-    for (let i = reorderPattern.length; i < letters.length; i++) {
-      reorderedLetters.push(letters[i]);
-      newCorrectOrder.push(i);
-    }
-    
-    // Update correctOrder to reflect new positions
-    const updatedCorrectOrder = correctOrder.map(originalIndex => {
-      return newCorrectOrder.indexOf(originalIndex);
+    console.log('🔄 Reordered letters with dhirgas first:', {
+      original: letters,
+      reordered: reorderedLetters,
+      originalOrder: correctOrder,
+      newOrder: newCorrectOrder
     });
     
-    // Only log when debugging is needed
-    if (reorderedLetters.length <= 10) { // Only log for reasonable length exercises
-      console.log('🔄 Final letter order:', reorderedLetters.join(' '));
-    }
-    
-    return { letters: reorderedLetters, correctOrder: updatedCorrectOrder };
+    return { letters: reorderedLetters, correctOrder: newCorrectOrder };
   };
 
   // Convert uploaded exercises to SpellingExercise format
@@ -367,7 +393,9 @@ export default function TeluguSpelling() {
     if (!currentExercise) return; // Guard clause to prevent errors
     
     setSelectedLetters([]);
-    setAvailableLetters([...currentExercise.letters]); // Use original letters, no reordering here
+    // FIXED: Reorder letters with dhirgas first before showing to user
+    const reordered = reorderLettersForDhirgas(currentExercise.letters, currentExercise.correctOrder);
+    setAvailableLetters([...reordered.letters]);
     
     setIsCorrect(null);
     setShowHint(false);
@@ -382,8 +410,11 @@ export default function TeluguSpelling() {
 
   useEffect(() => {
     if (currentExercise) {
+      console.log('🔍 Current exercise letters:', currentExercise.letters);
       // Apply reordering only to the current exercise
       const reordered = reorderLettersForDhirgas(currentExercise.letters, currentExercise.correctOrder);
+      console.log('🔍 Setting available letters:', reordered.letters);
+      console.log('🔍 Available letters length:', reordered.letters.length);
       setAvailableLetters([...reordered.letters]);
       
       // Reset other states
@@ -401,71 +432,57 @@ export default function TeluguSpelling() {
     }
   }, [currentExerciseIndex]); // Only depend on currentExerciseIndex
 
-  const playAudio = () => {
+  const playAudio = async () => {
     if (!currentExercise) return; // Guard clause
     
     // Use teluguWord for speech synthesis (uploaded exercises don't have audio property)
     const textToSpeak = currentExercise.audio || currentExercise.teluguWord;
     console.log('🎤 Attempting to play audio:', textToSpeak);
     
-    // Check if speech synthesis is supported
-    if (!('speechSynthesis' in window)) {
-      toast({
-        title: "Not Supported",
-        description: "Speech synthesis is not supported in this browser.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     setIsPlaying(true);
     
-    // Use Google Geeta voice specifically
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = 'te-IN'; // Use Telugu language code
-    utterance.rate = 0.75;
-    utterance.pitch = 1.1;
-    
-    // Find Google Geeta voice
-    const voices = window.speechSynthesis.getVoices();
-    const geetaVoice = voices.find(voice => 
-      voice.name.toLowerCase().includes('geeta') || 
-      voice.name.toLowerCase().includes('google geeta') ||
-      (voice.lang === 'te-IN' && voice.name.toLowerCase().includes('geeta'))
-    );
-    
-    if (geetaVoice) {
-      utterance.voice = geetaVoice;
-      console.log('🎤 Using Google Geeta voice for Telugu:', geetaVoice.name);
-    } else {
-      console.log('⚠️ Google Geeta voice not found, using default Telugu voice');
-    }
-    
-    utterance.onstart = () => {
-      console.log('✅ Telugu speech synthesis started');
-    };
-    
-    utterance.onend = () => {
-      console.log('✅ Telugu speech synthesis ended');
+    // Use enhanced speech utilities with better browser compatibility
+    try {
+      await speakText(textToSpeak, {
+        lang: 'te-IN',
+        rate: 0.75,
+        pitch: 1.1,
+        onEnd: () => {
+          setIsPlaying(false);
+        },
+        onError: (error) => {
+          console.error('❌ Speech synthesis error:', error);
+          setIsPlaying(false);
+          
+          // Provide user-friendly error messages
+          let errorMessage = "Failed to play audio. ";
+          if (error.error === 'not-supported') {
+            errorMessage += "Your browser doesn't support speech synthesis.";
+          } else if (error.error === 'no-voices-available') {
+            errorMessage += "No speech voices are available. Please try refreshing the page.";
+          } else if (error.error === 'voice-loading-failed') {
+            errorMessage += "Unable to load speech voices. Please try again.";
+          } else {
+            errorMessage += "Please try again or check your browser settings.";
+          }
+          
+          toast({
+            title: "Audio Error",
+            description: errorMessage,
+            variant: "destructive"
+          });
+        }
+      });
+    } catch (error) {
+      console.error('❌ Speech synthesis failed:', error);
       setIsPlaying(false);
-    };
-    
-    utterance.onerror = (error) => {
-      console.error('❌ Telugu speech synthesis error:', error);
-      setIsPlaying(false);
+      
       toast({
         title: "Audio Error",
-        description: "Failed to play Telugu audio.",
+        description: "Failed to play audio. Please try again.",
         variant: "destructive"
       });
-    };
-    
-    // Stop any current speech first
-    window.speechSynthesis.cancel();
-    
-    // Speak immediately
-    console.log('🎤 Speaking Telugu word:', textToSpeak);
-    window.speechSynthesis.speak(utterance);
+    }
   };
 
   const selectLetter = (letterIndex: number) => {
@@ -651,6 +668,26 @@ export default function TeluguSpelling() {
         i += 3; // Skip గ, ్, య
         foundConjunct = true;
       }
+      // Universal pattern: consonant + dhirga + virama + consonant = conjunct
+      else if (getLetterType(currentChar) === 'consonant' && 
+               getLetterType(nextChar) === 'dhirga' && 
+               getLetterType(nextNextChar) === 'modifier' && 
+               i + 3 < components.length && 
+               getLetterType(components[i + 3]) === 'consonant') {
+        // Form the conjunct: consonant + virama + consonant + dhirga
+        const conjunct = currentChar + nextNextChar + components[i + 3] + nextChar;
+        formedWord += conjunct;
+        console.log(`🔍 Found ${currentChar} + ${nextChar} + ${nextNextChar} + ${components[i + 3]}, adding ${conjunct}, skipping to index`, i + 4);
+        i += 4; // Skip consonant, dhirga, virama, consonant
+        foundConjunct = true;
+      }
+      // మ + ్ + య = మ్య (3-character pattern)
+      else if (currentChar === 'మ' && nextChar === '్' && nextNextChar === 'య') {
+        formedWord += 'మ్య';
+        console.log('🔍 Found మ + ్ + య, adding మ్య, skipping to index', i + 3);
+        i += 3; // Skip మ, ్, య
+        foundConjunct = true;
+      }
       // శ + ్ + ర = శ్ర
       else if (currentChar === 'శ' && nextChar === '్' && nextNextChar === 'ర') {
         formedWord += 'శ్ర';
@@ -742,7 +779,9 @@ export default function TeluguSpelling() {
     
     // Show warning before shuffling
     if (confirm('Are you sure you want to shuffle the letters? This will reset your current progress on this exercise.')) {
-      const shuffled = [...currentExercise.letters].sort(() => Math.random() - 0.5);
+      // FIXED: Shuffle the reordered letters, not the original ones
+      const reordered = reorderLettersForDhirgas(currentExercise.letters, currentExercise.correctOrder);
+      const shuffled = [...reordered.letters].sort(() => Math.random() - 0.5);
       setAvailableLetters(shuffled);
       setSelectedLetters([]);
       console.log('🔀 Letters shuffled');
