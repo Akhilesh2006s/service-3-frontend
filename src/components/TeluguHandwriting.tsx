@@ -72,14 +72,26 @@ export default function TeluguHandwriting() {
       document.body.style.overflow = 'hidden';
       document.body.classList.add('fullscreen-active');
       
-      // FIXED: Set canvas dimensions to match screen
+      // FIXED: Preserve canvas data when entering fullscreen
       setTimeout(() => {
         if (canvasRef.current) {
-          canvasRef.current.width = window.innerWidth;
-          canvasRef.current.height = window.innerHeight - 60;
-          console.log('🎯 Canvas resized for fullscreen:', {
-            width: canvasRef.current.width,
-            height: canvasRef.current.height
+          // Save current canvas data
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext('2d');
+          const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+          
+          // Resize canvas
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight - 60;
+          
+          // Restore canvas data
+          if (imageData && ctx) {
+            ctx.putImageData(imageData, 0, 0);
+          }
+          
+          console.log('🎯 Canvas resized for fullscreen with preserved data:', {
+            width: canvas.width,
+            height: canvas.height
           });
         }
       }, 100);
@@ -93,14 +105,26 @@ export default function TeluguHandwriting() {
       document.body.style.overflow = 'auto';
       document.body.classList.remove('fullscreen-active');
       
-      // FIXED: Reset canvas dimensions
+      // FIXED: Preserve canvas data when exiting fullscreen
       setTimeout(() => {
         if (canvasRef.current) {
-          canvasRef.current.width = 800;
-          canvasRef.current.height = 300;
-          console.log('🎯 Canvas reset to normal size:', {
-            width: canvasRef.current.width,
-            height: canvasRef.current.height
+          // Save current canvas data
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext('2d');
+          const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+          
+          // Resize canvas
+          canvas.width = 800;
+          canvas.height = 300;
+          
+          // Restore canvas data
+          if (imageData && ctx) {
+            ctx.putImageData(imageData, 0, 0);
+          }
+          
+          console.log('🎯 Canvas reset to normal size with preserved data:', {
+            width: canvas.width,
+            height: canvas.height
           });
         }
       }, 100);
